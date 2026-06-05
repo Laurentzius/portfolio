@@ -15,6 +15,7 @@ export class InteractionManager {
     
     this.hoveredButton = null;
     this.activeLooseCubie = null;
+    this.hoveredTile = null;
 
     // Click tracking states
     this.pointerDownTime = 0;
@@ -33,6 +34,19 @@ export class InteractionManager {
     window.addEventListener('pointermove', this.onMouseMoveHandler);
     window.addEventListener('pointerup', this.onMouseUpHandler);
     window.addEventListener('wheel', this.onWheelHandler, { passive: false });
+  }
+
+  setHoveredTile(tile) {
+    if (this.hoveredTile === tile) return;
+    if (this.hoveredTile?.material) {
+      this.hoveredTile.material.emissive?.setHex(0x000000);
+      this.hoveredTile.material.emissiveIntensity = 0;
+    }
+    this.hoveredTile = tile;
+    if (this.hoveredTile?.material) {
+      this.hoveredTile.material.emissive?.setHex(0xffffff);
+      this.hoveredTile.material.emissiveIntensity = 0.08;
+    }
   }
 
   destroy() {
@@ -99,8 +113,8 @@ export class InteractionManager {
     // Update the raycaster immediately so all branches use current projection coordinates
     this.raycaster.setFromCamera(this.mouse, this.exp.camera);
 
-    // 1. If currently dragging a cube layer, route drag to Rubik's Cube
     if (this.isInteractingWithCube && this.exp.rubiksCube) {
+      this.setHoveredTile(null);
       this.exp.rubiksCube.onPointerMove(e);
       this.exp.canvas.style.cursor = 'grabbing';
       return;
@@ -122,7 +136,11 @@ export class InteractionManager {
     if (this.exp.rubiksCube) {
       const intersects = this.raycaster.intersectObjects(this.exp.rubiksCube.cubeGroup.children, true);
       const tileHit = intersects.find(intersect => intersect.object.userData.isTile);
-      if (tileHit) isHoveringInteractable = true;
+      this.setHoveredTile(tileHit?.object ?? null);
+      if (tileHit) {
+        isHoveringInteractable = true;
+        this.exp.canvas.style.cursor = 'crosshair';
+      }
     }
 
     if (!isHoveringInteractable && this.exp.looseCubies && this.exp.looseCubies.length > 0) {
@@ -132,7 +150,12 @@ export class InteractionManager {
       if (looseHit) isHoveringInteractable = true;
     }
 
-    this.exp.canvas.style.cursor = isHoveringInteractable ? 'grab' : 'default';
+    if (!isHoveringInteractable) this.setHoveredTile(null);
+    if (isHoveringInteractable && this.exp.canvas.style.cursor !== 'crosshair') {
+      this.exp.canvas.style.cursor = 'grab';
+    } else if (!isHoveringInteractable) {
+      this.exp.canvas.style.cursor = 'default';
+    }
   }
 
   onPointerUp(e) {
@@ -183,6 +206,7 @@ export class InteractionManager {
 
     // Always re-enable controls on pointer up
     this.exp.controls.enabled = true;
+    this.setHoveredTile(null);
   }
 
   resetInteractionFlags() {

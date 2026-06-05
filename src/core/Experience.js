@@ -126,12 +126,16 @@ export class Experience {
       audioEngine: this.audioEngine,
       repairNarrative: this.repairNarrative,
     });
+    this.initSectionOverlays();
     this.navigation.showCompromisedIntro();
 
     // Listen for cube restoration to fade in glowing lines
     this.onCubeRestored = () => {
       if (this.atmosphere) {
         this.atmosphere.restore();
+      }
+      if (this.lighting) {
+        this.lighting.triggerUnlockPulse();
       }
     };
     window.addEventListener('cube-restored', this.onCubeRestored);
@@ -142,6 +146,81 @@ export class Experience {
     // Handle resize
     this.resizeHandler = this.onResize.bind(this);
     window.addEventListener('resize', this.resizeHandler);
+  }
+
+  createPlaqueTexture(lines) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.38)';
+    ctx.lineWidth = 2;
+    ctx.roundRect(18, 18, 476, 220, 24);
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 34px Outfit, sans-serif';
+    ctx.fillText(lines[0], 42, 82);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '600 22px Outfit, sans-serif';
+    ctx.fillText(lines[1], 42, 132);
+    ctx.fillStyle = 'rgba(255,255,255,0.48)';
+    ctx.font = '500 18px Outfit, sans-serif';
+    ctx.fillText(lines[2], 42, 180);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  initSectionOverlays() {
+    this.sectionOverlayGroup = new THREE.Group();
+    this.sectionOverlayGroup.visible = false;
+    this.scene.add(this.sectionOverlayGroup);
+    this.sectionOverlayTextures = [];
+
+    const projects = [
+      ['VOXEL', 'BROWSER ENGINE', 'TERRAIN / PHYSICS'],
+      ['SHADER', 'GLSL PLAYGROUND', 'RAYMARCH / SDF'],
+      ['AUDIO', 'SPATIAL SYNTH', 'WEB AUDIO API'],
+    ];
+
+    projects.forEach((project, index) => {
+      const texture = this.createPlaqueTexture(project);
+      this.sectionOverlayTextures.push(texture);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        toneMapped: false,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.9), material);
+      mesh.userData.baseAngle = index * (Math.PI * 2 / projects.length) + 0.35;
+      this.sectionOverlayGroup.add(mesh);
+    });
+  }
+
+  setSectionOverlay(sectionId) {
+    this.sectionOverlayMode = sectionId === 'experience' || sectionId === 'contact' ? sectionId : null;
+    if (this.sectionOverlayGroup) {
+      this.sectionOverlayGroup.visible = Boolean(this.sectionOverlayMode);
+    }
+  }
+
+  updateSectionOverlays(dt) {
+    if (!this.sectionOverlayGroup) return;
+    const active = Boolean(this.sectionOverlayMode);
+    const now = performance.now() * 0.001;
+    this.sectionOverlayGroup.children.forEach((mesh, index) => {
+      const angle = mesh.userData.baseAngle + (this.sectionOverlayMode === 'experience' ? now * 0.16 : 0);
+      const radius = this.sectionOverlayMode === 'contact' ? 2.7 : 3.25;
+      const y = this.sectionOverlayMode === 'contact' ? 1.1 + index * 0.34 : 0.55 + Math.sin(now + index) * 0.16;
+      mesh.position.set(Math.sin(angle) * radius, y, Math.cos(angle) * radius);
+      mesh.lookAt(this.camera.position);
+      mesh.material.opacity = THREE.MathUtils.lerp(mesh.material.opacity, active ? 0.72 : 0, 5 * dt);
+    });
   }
 
   bindPortfolioNav() {
@@ -175,6 +254,9 @@ export class Experience {
 
   navigateTo(sectionId) {
     this.navigation.showSection(sectionId);
+    if (this.lighting) {
+      this.lighting.setSectionAccent(sectionId);
+    }
     if (this.atmosphere) {
       this.atmosphere.setSection(sectionId);
     }
@@ -182,6 +264,7 @@ export class Experience {
       this.animateCameraToSection(sectionId);
       this.setActiveNavButton(sectionId);
     }
+    this.setSectionOverlay(sectionId);
   }
 
   animateCameraToSection(sectionId) {
@@ -204,12 +287,15 @@ export class Experience {
     const elapsed = performance.now() - this.cameraAnimation.startedAt;
     const progress = Math.min(elapsed / this.cameraAnimation.duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
+    const arcLift = Math.sin(progress * Math.PI) * 0.42;
 
     const currentTarget = new THREE.Vector3().lerpVectors(
       this.cameraAnimation.fromTarget,
       this.cameraAnimation.toTarget,
       eased
     );
+    currentTarget.y += arcLift;
+
     const fromOffset = new THREE.Vector3().subVectors(this.cameraAnimation.fromPosition, this.cameraAnimation.fromTarget);
     const toOffset = new THREE.Vector3().subVectors(this.cameraAnimation.toPosition, this.cameraAnimation.toTarget);
     const radiusStart = fromOffset.length();
@@ -220,12 +306,11 @@ export class Experience {
     const currentPhi = THREE.MathUtils.lerp(phiStart, phiEnd, eased);
     const thetaStart = Math.atan2(fromOffset.x, fromOffset.z);
     const thetaEnd = Math.atan2(toOffset.x, toOffset.z);
-    // Shortest angular distance interpolation for theta
+
     let dTheta = thetaEnd - thetaStart;
     while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
     while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
     const currentTheta = thetaStart + dTheta * eased;
-    // Convert spherical coordinates back to Cartesian offset
     const sinPhi = Math.sin(currentPhi);
     const currentOffset = new THREE.Vector3(
       currentRadius * sinPhi * Math.sin(currentTheta),
@@ -280,6 +365,7 @@ export class Experience {
       if (this.glassBoard) {
         this.glassBoard.update(dt);
       }
+      this.updateSectionOverlays(dt);
 
       if (this.repairNarrative) {
         this.repairNarrative.update(dt);

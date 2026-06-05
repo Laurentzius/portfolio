@@ -5,6 +5,9 @@ export class Lighting {
     this.scene = scene;
     this.renderer = renderer;
 
+    this.lastEnvironmentUpdate = 0;
+    this.unlockPulseUntil = 0;
+    this.snapGlintUntil = 0;
     this.initLights();
     this.initEnvironment();
   }
@@ -37,16 +40,16 @@ export class Lighting {
     this.scene.add(fillLight);
 
     // 4. Primary Rim Light (Back-Left-Top): Outlines rounded edges
-    const rimLight1 = new THREE.DirectionalLight(0xffffff, 3.2);
-    rimLight1.position.set(-5, 6, -6);
-    rimLight1.lookAt(0, 0, 0);
-    this.scene.add(rimLight1);
+    this.rimLight1 = new THREE.DirectionalLight(0xffffff, 3.2);
+    this.rimLight1.position.set(-5, 6, -6);
+    this.rimLight1.lookAt(0, 0, 0);
+    this.scene.add(this.rimLight1);
 
     // 5. Secondary Rim Light (Back-Right-Top): Balances rim highlights
-    const rimLight2 = new THREE.DirectionalLight(0xfff8fa, 2.0);
-    rimLight2.position.set(5, 5, -6);
-    rimLight2.lookAt(0, 0, 0);
-    this.scene.add(rimLight2);
+    this.rimLight2 = new THREE.DirectionalLight(0xfff8fa, 2.0);
+    this.rimLight2.position.set(5, 5, -6);
+    this.rimLight2.lookAt(0, 0, 0);
+    this.scene.add(this.rimLight2);
 
     // 6. Overhead Spotlight: Creates top face focus
     const spotLight = new THREE.SpotLight(0xffffff, 2.5, 16, Math.PI / 5, 0.6, 1);
@@ -56,11 +59,18 @@ export class Lighting {
 
     // 6b. Neutral front glint: restores readable white highlights on the chrome cube
     // without using the blue environment map as the main light source.
-    const cubeGlint = new THREE.SpotLight(0xf6fbff, 4.8, 14, Math.PI / 7, 0.72, 1);
-    cubeGlint.position.set(-3.2, 3.6, 5.8);
-    cubeGlint.target.position.set(0.0, 0.35, 0.0);
-    this.scene.add(cubeGlint);
-    this.scene.add(cubeGlint.target);
+    this.cubeGlint = new THREE.SpotLight(0xf6fbff, 4.8, 14, Math.PI / 7, 0.72, 1);
+    this.cubeGlint.position.set(-3.2, 3.6, 5.8);
+    this.cubeGlint.target.position.set(0.0, 0.35, 0.0);
+    this.scene.add(this.cubeGlint);
+    this.scene.add(this.cubeGlint.target);
+
+    this.unlockPulseLight = new THREE.PointLight(0xffffff, 0, 7);
+    this.unlockPulseLight.position.set(0, 0.35, 0);
+    this.scene.add(this.unlockPulseLight);
+    this.snapGlintLight = new THREE.PointLight(0xffffff, 0, 4.5);
+    this.snapGlintLight.position.set(0, 0.25, 1.8);
+    this.scene.add(this.snapGlintLight);
 
     // 7. Floor Bounce Light
     const bounceLight = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -184,9 +194,51 @@ export class Lighting {
     this.materialsToDispose = [stripMat, squareMat];
   }
 
+  setSectionAccent(sectionId) {
+    const accents = {
+      welcome: 0xffffff,
+      about: 0xffead0,
+      skills: 0xdffcff,
+      experience: 0xffd6f7,
+      contact: 0xfff0d8,
+    };
+    const color = accents[sectionId] ?? accents.welcome;
+    if (this.cubeGlint) this.cubeGlint.color.setHex(color);
+    if (this.rimLight1) this.rimLight1.color.setHex(color);
+  }
+
+  triggerUnlockPulse() {
+    this.unlockPulseUntil = performance.now() + 1100;
+  }
+
+  triggerSnapGlint() {
+    this.snapGlintUntil = performance.now() + 220;
+  }
+
+  updateLightEffects(now) {
+    if (this.unlockPulseLight) {
+      const remaining = Math.max(0, this.unlockPulseUntil - now);
+      const t = remaining / 1100;
+      this.unlockPulseLight.intensity = t > 0 ? Math.sin(t * Math.PI) * 3.8 : 0;
+    }
+    if (this.snapGlintLight) {
+      const remaining = Math.max(0, this.snapGlintUntil - now);
+      const t = remaining / 220;
+      this.snapGlintLight.intensity = t > 0 ? t * t * 2.6 : 0;
+    }
+  }
+
   update(experience) {
     if (!this.cubeCamera || !this.renderer) return;
 
+    const now = performance.now();
+    this.updateLightEffects(now);
+
+    const cube = experience.rubiksCube;
+    const cubeIsTwisting = Boolean(cube?.isDragging || cube?.isSnapping || cube?.isAnimating);
+    const minInterval = cubeIsTwisting ? 260 : 66;
+    if (now - this.lastEnvironmentUpdate < minInterval) return;
+    this.lastEnvironmentUpdate = now;
     // 1. Hide objects we don't want in the reflection
     const rubiksGroups = [
       experience.rubiksCube?.cubeGroup,

@@ -155,6 +155,11 @@ body::before {
   transform: translateY(-1px);
 }
 
+.portfolio-nav button:hover ~ .target-cursor,
+.portfolio-nav button:focus-visible ~ .target-cursor {
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
 .portfolio-nav button:focus-visible {
   outline: 1px solid rgba(255, 255, 255, 0.28);
   outline-offset: 6px;

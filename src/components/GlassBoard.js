@@ -55,17 +55,17 @@ export class GlassBoard {
       },
       experience: {
         eyebrow: '03 / WORK',
-        title: 'SELECTED CASES',
-        subtitle: 'INTERACTIVE SYSTEMS',
-        body: 'High-fidelity WebGL showcases, bespoke portfolio concepts, and dynamic web applications.',
-        footer: 'CUBE FACE: BACK'
+        title: 'CASE ORBIT',
+        subtitle: 'VOXEL / SHADER / AUDIO',
+        body: '[01] Voxel terrain engine\\n[02] GLSL raymarch playground\\n[03] Spatial synth interface',
+        footer: 'WORK CAROUSEL / CAMERA ORBIT'
       },
       contact: {
         eyebrow: '04 / CONTACT',
-        title: 'LET\'S BUILD',
-        subtitle: 'SPATIAL WEB EXPERIENCES',
-        body: 'Email: hello@hakon.dev · Telegram: @hakon_dev · GitHub: github.com/hakon-dev',
-        footer: 'OPEN FOR COLLABORATION'
+        title: 'SIGNAL MODE',
+        subtitle: 'TRANSMISSION CHANNELS',
+        body: '[EMAIL] hello@hakon.dev\\n[TELEGRAM] @hakon_dev\\n[GITHUB] github.com/hakon-dev',
+        footer: 'READY TO RECEIVE'
       },
       voxel: {
         eyebrow: 'CASE / VOXEL',
@@ -262,28 +262,36 @@ export class GlassBoard {
   }
 
   wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = Infinity) {
-    const words = text.split(' ');
-    let line = '';
+    const paragraphs = text.split('\\n');
     let currentY = y;
     let lines = 0;
 
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i] + ' ';
-      if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+    for (let p = 0; p < paragraphs.length; p++) {
+      const words = paragraphs[p].split(' ');
+      let line = '';
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+          ctx.fillText(line.trim(), x, currentY);
+          lines += 1;
+          if (lines >= maxLines) return currentY + lineHeight;
+          line = words[i] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (line && lines < maxLines) {
         ctx.fillText(line.trim(), x, currentY);
         lines += 1;
-        if (lines >= maxLines) return currentY + lineHeight;
-        line = words[i] + ' ';
         currentY += lineHeight;
-      } else {
-        line = testLine;
       }
+      if (lines >= maxLines) return currentY;
     }
 
-    if (line && lines < maxLines) {
-      ctx.fillText(line.trim(), x, currentY);
-    }
-    return currentY + lineHeight;
+    return currentY;
   }
 
   update(dt) {

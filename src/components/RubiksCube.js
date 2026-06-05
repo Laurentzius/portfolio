@@ -37,6 +37,7 @@ export class RubiksCube {
     this.isAnimating = false;
     this.animationQueue = [];
     this.moveHistory = [];
+    this.idleStartedAt = performance.now();
     
     // Snapping state
     this.isSnapping = false;
@@ -305,6 +306,17 @@ export class RubiksCube {
   }
 
   update() {
+    const activeMotion = this.isDragging || this.isSnapping || this.isAnimating || this.animationQueue.length > 0;
+    if (!activeMotion) {
+      const t = (performance.now() - this.idleStartedAt) * 0.001;
+      this.cubeGroup.rotation.y = Math.sin(t * 0.45) * 0.018;
+      this.cubeGroup.rotation.x = Math.sin(t * 0.32) * 0.008;
+    } else {
+      this.idleStartedAt = performance.now();
+      this.cubeGroup.rotation.x = THREE.MathUtils.lerp(this.cubeGroup.rotation.x, 0, 0.18);
+      this.cubeGroup.rotation.y = THREE.MathUtils.lerp(this.cubeGroup.rotation.y, 0, 0.18);
+    }
+
     // 1. Process drag inertia
     if (this.isDragging && this.dragStarted) {
       this.dragCurrentAngle = THREE.MathUtils.lerp(this.dragCurrentAngle, this.dragTargetAngle, 0.12);
@@ -360,6 +372,9 @@ export class RubiksCube {
     // Play sound from central AudioEngine
     if (this.audioEngine) {
       this.audioEngine.playCubeClack();
+    }
+    if (this.exp.lighting) {
+      this.exp.lighting.triggerSnapGlint();
     }
 
     // Release OrbitControls
