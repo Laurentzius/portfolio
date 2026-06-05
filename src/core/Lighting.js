@@ -31,8 +31,8 @@ export class Lighting {
     this.keyLight.shadow.radius = 4; // Soft shadows
     this.scene.add(this.keyLight);
 
-    // 3. Fill Light (Left-Front-Bottom): Soft cool bounce to fill shadows
-    const fillLight = new THREE.DirectionalLight(0xe6f0ff, 0.8);
+    // 3. Fill Light (Left-Front-Bottom): Neutral bounce to fill shadows without tinting chrome blue
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.75);
     fillLight.position.set(-6, -2, 5);
     this.scene.add(fillLight);
 
@@ -54,6 +54,14 @@ export class Lighting {
     spotLight.target.position.set(0, 0, 0);
     this.scene.add(spotLight);
 
+    // 6b. Neutral front glint: restores readable white highlights on the chrome cube
+    // without using the blue environment map as the main light source.
+    const cubeGlint = new THREE.SpotLight(0xf6fbff, 4.8, 14, Math.PI / 7, 0.72, 1);
+    cubeGlint.position.set(-3.2, 3.6, 5.8);
+    cubeGlint.target.position.set(0.0, 0.35, 0.0);
+    this.scene.add(cubeGlint);
+    this.scene.add(cubeGlint.target);
+
     // 7. Floor Bounce Light
     const bounceLight = new THREE.DirectionalLight(0xffffff, 0.5);
     bounceLight.position.set(0, -6, 0);
@@ -67,37 +75,87 @@ export class Lighting {
     this.scene.add(wallLight.target);
   }
 
+  createSoftboxTexture(width, height, aspectFalloff) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    const image = ctx.createImageData(width, height);
+    const data = image.data;
+
+    for (let y = 0; y < height; y++) {
+      const ny = (y / (height - 1)) * 2 - 1;
+      for (let x = 0; x < width; x++) {
+        const nx = (x / (width - 1)) * 2 - 1;
+        const distance = Math.sqrt(nx * nx * aspectFalloff.x + ny * ny * aspectFalloff.y);
+        const intensity = Math.max(0, 1 - distance);
+        const alpha = Math.pow(intensity, 2.2) * 255;
+        const index = (y * width + x) * 4;
+
+        data[index] = 255;
+        data[index + 1] = 255;
+        data[index + 2] = 255;
+        data[index + 3] = alpha;
+      }
+    }
+
+    ctx.putImageData(image, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
+    return texture;
+  }
+
+  createSoftboxMaterial(width, height, aspectFalloff) {
+    const texture = this.createSoftboxTexture(width, height, aspectFalloff);
+    if (!this.texturesToDispose) {
+      this.texturesToDispose = [];
+    }
+    this.texturesToDispose.push(texture);
+
+    return new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+  }
+
   initEnvironment() {
     this.studioLightsGroup = new THREE.Group();
 
-    // Emissive panels (strip lights)
+    // Soft gradient panels used only by the cube camera. Hard-edged planes read as faceted polygons in chrome.
     const stripGeo = new THREE.PlaneGeometry(1.5, 6);
     const squareGeo = new THREE.PlaneGeometry(4, 4);
-    const lightMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      side: THREE.DoubleSide
-    });
+    const stripMat = this.createSoftboxMaterial(128, 512, { x: 3.5, y: 0.55 });
+    const squareMat = this.createSoftboxMaterial(256, 256, { x: 1.0, y: 1.0 });
 
     // Top softbox
-    const lightTop = new THREE.Mesh(squareGeo, lightMat);
+    const lightTop = new THREE.Mesh(squareGeo, squareMat);
     lightTop.position.set(0, 5.5, 0);
     lightTop.rotation.x = Math.PI / 2;
     this.studioLightsGroup.add(lightTop);
 
     // Right-front vertical strip
-    const stripRF = new THREE.Mesh(stripGeo, lightMat);
+    const stripRF = new THREE.Mesh(stripGeo, stripMat);
     stripRF.position.set(4, 2, 4);
     stripRF.lookAt(0, 0, 0);
     this.studioLightsGroup.add(stripRF);
 
     // Left-back vertical strip
-    const stripLB = new THREE.Mesh(stripGeo, lightMat);
+    const stripLB = new THREE.Mesh(stripGeo, stripMat);
     stripLB.position.set(-4, 2, -4);
     stripLB.lookAt(0, 0, 0);
     this.studioLightsGroup.add(stripLB);
 
     // Top-left horizontal strip
-    const stripTL = new THREE.Mesh(stripGeo, lightMat);
+    const stripTL = new THREE.Mesh(stripGeo, stripMat);
     stripTL.position.set(-4, 5, 2);
     stripTL.rotation.z = Math.PI / 4;
     stripTL.lookAt(0, 0, 0);
@@ -106,8 +164,8 @@ export class Lighting {
     this.studioLightsGroup.visible = false; // Hide from main render pass
     this.scene.add(this.studioLightsGroup);
 
-    // Use 128 resolution for great performance and smooth reflections
-    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(128, {
+    // High-resolution dynamic cubemap so thin lightfall streaks stay crisp in chrome reflections.
+    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(1024, {
       generateMipmaps: true,
       minFilter: THREE.LinearMipmapLinearFilter,
       magFilter: THREE.LinearFilter,
@@ -123,22 +181,25 @@ export class Lighting {
     this.scene.environment = this.cubeRenderTarget.texture;
 
     this.geometriesToDispose = [stripGeo, squareGeo];
-    this.materialsToDispose = [lightMat];
+    this.materialsToDispose = [stripMat, squareMat];
   }
 
   update(experience) {
     if (!this.cubeCamera || !this.renderer) return;
 
     // 1. Hide objects we don't want in the reflection
-    const rubiksGroup = experience.rubiksCube?.group;
+    const rubiksGroups = [
+      experience.rubiksCube?.cubeGroup,
+      experience.rubiksCube?.rotationGroup,
+    ].filter(Boolean);
     const glassGroup = experience.glassBoard?.group;
     const looseCubies = experience.looseCubies;
 
-    let wasRubiksVisible = false;
-    if (rubiksGroup) {
-      wasRubiksVisible = rubiksGroup.visible;
-      rubiksGroup.visible = false;
-    }
+    const rubiksVisibilities = [];
+    rubiksGroups.forEach((group, i) => {
+      rubiksVisibilities[i] = group.visible;
+      group.visible = false;
+    });
 
     let wasGlassVisible = false;
     if (glassGroup) {
@@ -154,21 +215,14 @@ export class Lighting {
       });
     }
 
-    // 2. Show studio lights for the cube camera render
-    if (this.studioLightsGroup) {
-      this.studioLightsGroup.visible = true;
-    }
-
-    // 3. Render the environment scene (captures atmosphere + studio lights)
+    // 2. Render only the continuous atmosphere into the reflection map.
+    // Discrete studio panels create segmented highlights across separate Rubik's Cube tiles.
     this.cubeCamera.update(this.renderer, this.scene);
 
-    // 4. Restore visibilities for the main camera render
-    if (this.studioLightsGroup) {
-      this.studioLightsGroup.visible = false;
-    }
-    if (rubiksGroup) {
-      rubiksGroup.visible = wasRubiksVisible;
-    }
+    // 3. Keep studio reflection helpers hidden from the main camera too.
+    rubiksGroups.forEach((group, i) => {
+      group.visible = rubiksVisibilities[i];
+    });
     if (glassGroup) {
       glassGroup.visible = wasGlassVisible;
     }
@@ -185,6 +239,9 @@ export class Lighting {
     }
     if (this.geometriesToDispose) {
       this.geometriesToDispose.forEach(g => g.dispose());
+    }
+    if (this.texturesToDispose) {
+      this.texturesToDispose.forEach(t => t.dispose());
     }
     if (this.materialsToDispose) {
       this.materialsToDispose.forEach(m => m.dispose());

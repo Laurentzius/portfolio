@@ -30,22 +30,22 @@ export function createCubieMaterials() {
   return {
     bodyMaterial: new THREE.MeshPhysicalMaterial({
       color: 0x2d2d2d,
-      metalness: 1.0,
-      roughness: 0.35,
-      clearcoat: 0.1,
-      clearcoatRoughness: 0.3,
-      envMapIntensity: 1.5,
+      metalness: 0.82,
+      roughness: 0.38,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.25,
+      envMapIntensity: 0.85,
     }),
     tileMaterial: new THREE.MeshPhysicalMaterial({
-      color: 0x3a3a3a,
-      roughness: 0.01,
-      metalness: 0.95,
+      color: 0x454545,
+      roughness: 0.035,
+      metalness: 0.82,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.0,
+      clearcoatRoughness: 0.018,
       transmission: 0.0,
       ior: 1.8,
       specularIntensity: 1.0,
-      envMapIntensity: 4.5,
+      envMapIntensity: 1.45,
     }),
   };
 }
@@ -56,14 +56,14 @@ export function createCubieGeometries() {
       CUBIE_VISUAL.size,
       CUBIE_VISUAL.size,
       CUBIE_VISUAL.size,
-      3,
+      16,
       CUBIE_VISUAL.bevelSize
     ),
     tileGeometry: new RoundedBoxGeometry(
       CUBIE_VISUAL.tileWidth,
       CUBIE_VISUAL.tileHeight,
       CUBIE_VISUAL.tileThickness,
-      3,
+      16,
       0.02
     ),
   };

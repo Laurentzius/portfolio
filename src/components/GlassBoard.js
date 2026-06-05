@@ -130,8 +130,8 @@ export class GlassBoard {
       ior: 1.5,
       thickness: 0.03,
       side: THREE.DoubleSide,
-      depthWrite: true,
-      depthTest: true,
+      depthWrite: false,
+      depthTest: false,
     });
 
     this.glassMesh = new THREE.Mesh(glassGeometry, this.glassMaterial);
@@ -145,17 +145,22 @@ export class GlassBoard {
       color: 0xffffff,
       transparent: true,
       opacity: 0.22,
+      depthWrite: false,
+      depthTest: false,
     });
     this.borderLine = new THREE.LineSegments(edges, this.borderMaterial);
     this.borderLine.position.z = -0.004; // In front of glass, behind text
     this.borderLine.renderOrder = 11;
     this.group.add(this.borderLine);
 
+    this.group.position.set(1.45, 0.72, -4.35);
+    this.group.renderOrder = 10;
     this.group.visible = false;
     this.group.scale.set(0, 0, 0);
     this.targetScale = 0.0;
 
-    this.scene.add(this.group);
+    this.scene.add(this.camera);
+    this.camera.add(this.group);
   }
 
   setWelcomeBody(body) {
@@ -317,19 +322,5 @@ export class GlassBoard {
       }
     }
 
-    if (this.camera) {
-      this.camera.getWorldDirection(this.cameraForward);
-      this.cameraRight.setFromMatrixColumn(this.camera.matrixWorld, 0);
-      this.cameraUp.setFromMatrixColumn(this.camera.matrixWorld, 1);
-
-      this.badgePosition.copy(this.camera.position)
-        .addScaledVector(this.cameraForward, 4.35)
-        .addScaledVector(this.cameraRight, 1.45)
-        .addScaledVector(this.cameraUp, 0.72);
-
-      this.group.position.copy(this.badgePosition);
-      this.group.quaternion.copy(this.camera.quaternion);
-
-    }
   }
 }

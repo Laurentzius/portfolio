@@ -17,8 +17,8 @@ const SECTION_CAMERA_POSES = Object.freeze({
   welcome: { position: new THREE.Vector3(-6.4, 2.2, 7.6), target: new THREE.Vector3(1.0, 0.2, 0.0) },
   about: { position: new THREE.Vector3(-3.8, 4.8, 4.8), target: new THREE.Vector3(0.8, 0.1, 0.0) },
   skills: { position: new THREE.Vector3(7.5, 2.2, 3.8), target: new THREE.Vector3(0.5, 0.2, -1.0) },
-  experience: { position: new THREE.Vector3(6.4, 2.2, -7.6), target: new THREE.Vector3(-0.6, 0.2, -0.8) },
-  contact: { position: new THREE.Vector3(-8.0, 2.2, -2.0), target: new THREE.Vector3(-0.4, 0.2, 1.0) },
+  experience: { position: new THREE.Vector3(3.2, 1.15, -9.4), target: new THREE.Vector3(-0.9, -0.05, -0.35) },
+  contact: { position: new THREE.Vector3(-5.8, 5.6, -5.2), target: new THREE.Vector3(0.2, 0.35, 0.25) },
 });
 
 export class Experience {
@@ -50,7 +50,7 @@ export class Experience {
       powerPreference: "high-performance",
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // Cinematic tones

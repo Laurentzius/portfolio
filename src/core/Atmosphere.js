@@ -3,37 +3,37 @@ import * as THREE from 'three';
 const THEMES = Object.freeze({
   welcome: {
     colors: [new THREE.Color('#a6c8ff'), new THREE.Color('#5227ff'), new THREE.Color('#ff9ffc')],
-    background: new THREE.Color('#050201'),
-    glowColor: new THREE.Color('#381b00'),
-    glowIntensity: 0.95,
+    background: new THREE.Color('#030712'),
+    glowColor: new THREE.Color('#111318'),
+    glowIntensity: 0.58,
     speed: 0.58,
   },
   about: {
     colors: [new THREE.Color('#ffd6a5'), new THREE.Color('#fdffb6'), new THREE.Color('#a6c8ff')],
-    background: new THREE.Color('#050201'),
-    glowColor: new THREE.Color('#381b00'),
-    glowIntensity: 0.95,
+    background: new THREE.Color('#030712'),
+    glowColor: new THREE.Color('#111318'),
+    glowIntensity: 0.58,
     speed: 0.58,
   },
   skills: {
     colors: [new THREE.Color('#7df9ff'), new THREE.Color('#5227ff'), new THREE.Color('#a6c8ff')],
-    background: new THREE.Color('#050201'),
-    glowColor: new THREE.Color('#381b00'),
-    glowIntensity: 0.95,
+    background: new THREE.Color('#030712'),
+    glowColor: new THREE.Color('#111318'),
+    glowIntensity: 0.58,
     speed: 0.58,
   },
   experience: {
     colors: [new THREE.Color('#ff9ffc'), new THREE.Color('#8f7cff'), new THREE.Color('#ffffff')],
-    background: new THREE.Color('#050201'),
-    glowColor: new THREE.Color('#381b00'),
-    glowIntensity: 0.95,
+    background: new THREE.Color('#030712'),
+    glowColor: new THREE.Color('#111318'),
+    glowIntensity: 0.58,
     speed: 0.58,
   },
   contact: {
     colors: [new THREE.Color('#ffb86b'), new THREE.Color('#ff9ffc'), new THREE.Color('#ffffff')],
-    background: new THREE.Color('#050201'),
-    glowColor: new THREE.Color('#381b00'),
-    glowIntensity: 0.95,
+    background: new THREE.Color('#030712'),
+    glowColor: new THREE.Color('#111318'),
+    glowIntensity: 0.58,
     speed: 0.58,
   },
 });
@@ -68,8 +68,8 @@ export class Atmosphere {
     const radiusWall = radiusFloor + cornerRadius;
     const width = 2 * Math.PI * radiusWall;
     const length = 160;
-    const segmentsX = 240;
-    const segmentsY = 180;
+    const segmentsX = 1920;
+    const segmentsY = 240;
     const geo = new THREE.PlaneGeometry(width, length, segmentsX, segmentsY);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -136,8 +136,8 @@ export class Atmosphere {
         }
         void main() {
           vec2 centerDist = vUv - vec2(0.5);
-          float radialGlow = 1.0 - smoothstep(0.0, 0.76, length(centerDist));
-          vec3 ambientGlow = uBgColor + uGlowColor * radialGlow * uGlowIntensity * 0.38;
+          float radialGlow = 1.0 - smoothstep(0.0, 0.88, length(centerDist));
+          vec3 ambientGlow = uBgColor + uGlowColor * radialGlow * uGlowIntensity * 0.12;
           float y = vWorldPosition.y;
           float speedMultiplier = uTime * uSpeed * 10.0;
           // Stream 2: Medium-width glowing trails (starfall segments)
@@ -259,8 +259,10 @@ export class Atmosphere {
     this.streaksTarget = 1.0;
   }
 
+
   update(dt) {
     this.time += dt;
+
 
     const blend = 1 - Math.pow(0.0001, dt);
     this.current.speed = THREE.MathUtils.lerp(this.current.speed, this.target.speed, blend);
@@ -296,6 +298,7 @@ export class Atmosphere {
       u.uColor2.value.copy(this.current.colors[1]);
       if (u.uColor3) u.uColor3.value.copy(this.current.colors[2]);
       u.uStreaksIntensity.value = this.streaksIntensity;
+
     };
     updateMaterial(this.materialBg);
     updateMaterial(this.materialFg);
