@@ -72,31 +72,11 @@ export class Atmosphere {
     const segmentsY = 180;
     const geo = new THREE.PlaneGeometry(width, length, segmentsX, segmentsY);
     const pos = geo.attributes.position;
-    // Y-split where corner curve begins
-    const curveStart = -10;
-    const curveEnd = curveStart + cornerRadius * (Math.PI / 2);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const flatY = pos.getY(i);
-      let newY = 0;
-      let r = 0;
-      if (flatY < curveStart) {
-        // Floor part: flat horizontal plane, pulled lower to -11.45
-        newY = -11.45;
-        const t = (flatY - (-28)) / (curveStart - (-28)); // 0 to 1
-        r = radiusFloor * t;
-      } else if (flatY >= curveStart && flatY <= curveEnd) {
-        // Smooth curved transition starting from -11.45
-        const t = (flatY - curveStart) / (curveEnd - curveStart); // 0 to 1
-        const angle = t * (Math.PI / 2); // 0 to 90 degrees
-        newY = -11.45 + cornerRadius * (1 - Math.cos(angle));
-        r = radiusFloor + cornerRadius * Math.sin(angle);
-      } else {
-        // Vertical wall part
-        const excess = flatY - curveEnd;
-        newY = -11.45 + cornerRadius + excess;
-        r = radiusWall;
-      }
+      const newY = flatY;
+      const r = radiusWall;
       // Convert polar coordinates (r, theta) into 3D (X, Z)
       const theta = (x / (width / 2)) * Math.PI;
       const newX = r * Math.sin(theta);
@@ -171,12 +151,13 @@ export class Atmosphere {
           float maxVal2 = 1.0 / periodScale2; // 5.0
           float progress2 = fract(val2 * periodScale2) * maxVal2;
           float streakLength2 = 2.5;
-          float activeStreak2 = max(0.0, progress2 - (maxVal2 - streakLength2));
-          float streakValue2 = pow(activeStreak2 / streakLength2, 5.0);
+          float activeStreak2 = max(0.0, streakLength2 - progress2);
+          float headGlow2 = exp(-progress2 * 14.0);
+          float streakValue2 = pow(activeStreak2 / streakLength2, 5.0) * smoothstep(0.0, 0.05, progress2) * (1.0 + 1.6 * headGlow2);
           float dx2 = abs(fract(coordX2) - 0.5);
           float pxWidth2 = fwidth(coordX2);
-          float hWidth2 = max(0.06, 0.8 * pxWidth2);
-          float edge2 = pxWidth2 * 1.2;
+          float hWidth2 = max(0.024, 0.4 * pxWidth2);
+          float edge2 = pxWidth2 * 0.8;
           float glowProfile2 = smoothstep(hWidth2 + edge2, hWidth2 - edge2, dx2);
           float streak2 = streakValue2 * glowProfile2 * active2;
           vec3 col2 = mix(uColor2, uColor3, hash(colIndex2 + 12.0));
@@ -192,12 +173,13 @@ export class Atmosphere {
           float maxVal3 = 1.0 / periodScale3; // 4.0
           float progress3 = fract(val3 * periodScale3) * maxVal3;
           float streakLength3 = 3.0;
-          float activeStreak3 = max(0.0, progress3 - (maxVal3 - streakLength3));
-          float streakValue3 = pow(activeStreak3 / streakLength3, 3.0);
+          float activeStreak3 = max(0.0, streakLength3 - progress3);
+          float headGlow3 = exp(-progress3 * 12.0);
+          float streakValue3 = pow(activeStreak3 / streakLength3, 3.0) * smoothstep(0.0, 0.06, progress3) * (1.0 + 1.6 * headGlow3);
           float dx3 = abs(fract(coordX3) - 0.5);
           float pxWidth3 = fwidth(coordX3);
-          float hWidth3 = max(0.08, 0.8 * pxWidth3);
-          float edge3 = pxWidth3 * 1.2;
+          float hWidth3 = max(0.032, 0.4 * pxWidth3);
+          float edge3 = pxWidth3 * 0.8;
           float glowProfile3 = smoothstep(hWidth3 + edge3, hWidth3 - edge3, dx3);
           float streak3 = streakValue3 * glowProfile3 * active3;
           vec3 col3 = mix(uColor3, uColor1, hash(colIndex3 + 5.0));
@@ -241,12 +223,13 @@ export class Atmosphere {
           float maxVal1 = 1.0 / periodScale1; // 6.666
           float progress1 = fract(val1 * periodScale1) * maxVal1;
           float streakLength1 = 2.0;
-          float activeStreak1 = max(0.0, progress1 - (maxVal1 - streakLength1));
-          float streakValue1 = pow(activeStreak1 / streakLength1, 8.0);
+          float activeStreak1 = max(0.0, streakLength1 - progress1);
+          float headGlow1 = exp(-progress1 * 16.0);
+          float streakValue1 = pow(activeStreak1 / streakLength1, 8.0) * smoothstep(0.0, 0.04, progress1) * (1.0 + 1.8 * headGlow1);
           float dx1 = abs(fract(coordX1) - 0.5);
           float pxWidth1 = fwidth(coordX1);
-          float hWidth1 = max(0.04, 0.8 * pxWidth1);
-          float edge1 = pxWidth1 * 1.2;
+          float hWidth1 = max(0.016, 0.4 * pxWidth1);
+          float edge1 = pxWidth1 * 0.8;
           float glowProfile1 = smoothstep(hWidth1 + edge1, hWidth1 - edge1, dx1);
           float streak1 = streakValue1 * glowProfile1 * active1;
           vec3 col1 = mix(uColor1, uColor2, hash(colIndex1 + 7.0));
