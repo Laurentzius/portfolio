@@ -212,17 +212,27 @@ export class Experience {
     );
     const fromOffset = new THREE.Vector3().subVectors(this.cameraAnimation.fromPosition, this.cameraAnimation.fromTarget);
     const toOffset = new THREE.Vector3().subVectors(this.cameraAnimation.toPosition, this.cameraAnimation.toTarget);
-    const distStart = fromOffset.length();
-    const distEnd = toOffset.length();
-    const currentDist = THREE.MathUtils.lerp(distStart, distEnd, eased);
-    const dirStart = fromOffset.clone().normalize();
-    const dirEnd = toOffset.clone().normalize();
-    // Slerp the directions using Quaternion rotation
-    const q = new THREE.Quaternion().setFromUnitVectors(dirStart, dirEnd);
-    const qIdentity = new THREE.Quaternion();
-    const qInterpolated = new THREE.Quaternion().slerpQuaternions(qIdentity, q, eased);
-    const currentDir = dirStart.clone().applyQuaternion(qInterpolated).normalize();
-    this.camera.position.copy(currentTarget).addScaledVector(currentDir, currentDist);
+    const radiusStart = fromOffset.length();
+    const radiusEnd = toOffset.length();
+    const currentRadius = THREE.MathUtils.lerp(radiusStart, radiusEnd, eased);
+    const phiStart = Math.acos(Math.max(-1, Math.min(1, fromOffset.y / radiusStart)));
+    const phiEnd = Math.acos(Math.max(-1, Math.min(1, toOffset.y / radiusEnd)));
+    const currentPhi = THREE.MathUtils.lerp(phiStart, phiEnd, eased);
+    const thetaStart = Math.atan2(fromOffset.x, fromOffset.z);
+    const thetaEnd = Math.atan2(toOffset.x, toOffset.z);
+    // Shortest angular distance interpolation for theta
+    let dTheta = thetaEnd - thetaStart;
+    while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    const currentTheta = thetaStart + dTheta * eased;
+    // Convert spherical coordinates back to Cartesian offset
+    const sinPhi = Math.sin(currentPhi);
+    const currentOffset = new THREE.Vector3(
+      currentRadius * sinPhi * Math.sin(currentTheta),
+      currentRadius * Math.cos(currentPhi),
+      currentRadius * sinPhi * Math.cos(currentTheta)
+    );
+    this.camera.position.copy(currentTarget).add(currentOffset);
     this.controls.target.copy(currentTarget);
 
     if (progress === 1) {
