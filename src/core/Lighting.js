@@ -5,9 +5,7 @@ export class Lighting {
     this.scene = scene;
     this.renderer = renderer;
 
-    this.lastEnvironmentUpdate = 0;
     this.unlockPulseUntil = 0;
-    this.snapGlintUntil = 0;
     this.initLights();
     this.initEnvironment();
   }
@@ -68,9 +66,6 @@ export class Lighting {
     this.unlockPulseLight = new THREE.PointLight(0xffffff, 0, 7);
     this.unlockPulseLight.position.set(0, 0.35, 0);
     this.scene.add(this.unlockPulseLight);
-    this.snapGlintLight = new THREE.PointLight(0xffffff, 0, 4.5);
-    this.snapGlintLight.position.set(0, 0.25, 1.8);
-    this.scene.add(this.snapGlintLight);
 
     // 7. Floor Bounce Light
     const bounceLight = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -174,10 +169,10 @@ export class Lighting {
     this.studioLightsGroup.visible = false; // Hide from main render pass
     this.scene.add(this.studioLightsGroup);
 
-    // High-resolution dynamic cubemap so thin lightfall streaks stay crisp in chrome reflections.
-    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(1024, {
-      generateMipmaps: true,
-      minFilter: THREE.LinearMipmapLinearFilter,
+    // Dynamic cubemap updates every frame; keep it lighter so reflections stay smooth during twists.
+    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+      generateMipmaps: false,
+      minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
       format: THREE.RGBAFormat,
       type: THREE.UnsignedByteType,
@@ -211,20 +206,12 @@ export class Lighting {
     this.unlockPulseUntil = performance.now() + 1100;
   }
 
-  triggerSnapGlint() {
-    this.snapGlintUntil = performance.now() + 220;
-  }
 
   updateLightEffects(now) {
     if (this.unlockPulseLight) {
       const remaining = Math.max(0, this.unlockPulseUntil - now);
       const t = remaining / 1100;
       this.unlockPulseLight.intensity = t > 0 ? Math.sin(t * Math.PI) * 3.8 : 0;
-    }
-    if (this.snapGlintLight) {
-      const remaining = Math.max(0, this.snapGlintUntil - now);
-      const t = remaining / 220;
-      this.snapGlintLight.intensity = t > 0 ? t * t * 2.6 : 0;
     }
   }
 
@@ -234,11 +221,6 @@ export class Lighting {
     const now = performance.now();
     this.updateLightEffects(now);
 
-    const cube = experience.rubiksCube;
-    const cubeIsTwisting = Boolean(cube?.isDragging || cube?.isSnapping || cube?.isAnimating);
-    const minInterval = cubeIsTwisting ? 260 : 66;
-    if (now - this.lastEnvironmentUpdate < minInterval) return;
-    this.lastEnvironmentUpdate = now;
     // 1. Hide objects we don't want in the reflection
     const rubiksGroups = [
       experience.rubiksCube?.cubeGroup,

@@ -373,9 +373,6 @@ export class RubiksCube {
     if (this.audioEngine) {
       this.audioEngine.playCubeClack();
     }
-    if (this.exp.lighting) {
-      this.exp.lighting.triggerSnapGlint();
-    }
 
     // Release OrbitControls
     if (this.exp.controls) this.exp.controls.enabled = true;

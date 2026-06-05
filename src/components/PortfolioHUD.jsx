@@ -1,6 +1,5 @@
 import React from 'react';
 import TargetCursor from './TargetCursor.jsx';
-import Magnet from './Magnet.jsx';
 
 const NAV_SECTIONS = [
   { id: 'welcome', label: 'HOME' },
@@ -41,9 +40,7 @@ export default function PortfolioHUD() {
       <nav className="portfolio-nav" aria-label="Portfolio sections">
         {NAV_SECTIONS.map(({ id, label }) => (
           <button type="button" className="cursor-target" data-section={id} key={id}>
-            <Magnet strength={0.35} range={80}>[</Magnet>
             <span className="nav-label-text">{label}</span>
-            <Magnet strength={0.35} range={80}>]</Magnet>
           </button>
         ))}
       </nav>
