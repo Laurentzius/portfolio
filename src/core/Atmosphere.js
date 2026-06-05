@@ -139,7 +139,7 @@ export class Atmosphere {
           float radialGlow = 1.0 - smoothstep(0.0, 0.76, length(centerDist));
           vec3 ambientGlow = uBgColor + uGlowColor * radialGlow * uGlowIntensity * 0.38;
           float y = vWorldPosition.y;
-          float speedMultiplier = uTime * uSpeed * 30.0;
+          float speedMultiplier = uTime * uSpeed * 18.0;
           // Stream 2: Medium-width glowing trails (starfall segments)
           float freq2 = 140.0;
           float coordX2 = vUv.x * freq2;
@@ -212,7 +212,7 @@ export class Atmosphere {
         }
         void main() {
           float y = vWorldPosition.y;
-          float speedMultiplier = uTime * uSpeed * 30.0;
+          float speedMultiplier = uTime * uSpeed * 18.0;
           // Stream 1: Narrow, elegant streaks (starfall segments)
           float freq1 = 220.0;
           float coordX1 = vUv.x * freq1;
