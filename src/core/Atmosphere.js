@@ -154,31 +154,25 @@ export class Atmosphere {
         float hash(float n) {
           return fract(sin(n) * 43758.5453);
         }
-        float noise(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          float n = i.x + i.y * 57.0;
-          return mix(
-            mix(hash(n), hash(n + 1.0), f.x),
-            mix(hash(n + 57.0), hash(n + 58.0), f.x),
-            f.y
-          );
-        }
         void main() {
           vec2 centerDist = vUv - vec2(0.5);
           float radialGlow = 1.0 - smoothstep(0.0, 0.76, length(centerDist));
           vec3 ambientGlow = uBgColor + uGlowColor * radialGlow * uGlowIntensity * 0.38;
           float speedMultiplier = uTime * uSpeed * 0.46;
-          // Stream 2: Medium-width glowing trails
-          float freq2 = 150.0;
+          // Stream 2: Medium-width glowing trails (starfall segments)
+          float freq2 = 140.0;
           float coordX2 = vUv.x * freq2;
           float colIndex2 = floor(coordX2);
-          float active2 = step(0.62, hash(colIndex2 + 42.0));
-          float flow2 = vUv.y + speedMultiplier * 1.0;
-          float offset2 = hash(colIndex2 + 20.0) * 30.0;
-          float n2 = noise(vec2(colIndex2, flow2 * 0.4 + offset2));
-          float streakValue2 = smoothstep(0.65, 0.88, n2) * n2;
+          float active2 = step(0.50, hash(colIndex2 + 42.0)); // 50% density
+          float colSpeed2 = 1.2 + 0.4 * hash(colIndex2 + 5.0);
+          float colOffset2 = hash(colIndex2 + 19.0) * 20.0;
+          float val2 = vUv.y + speedMultiplier * colSpeed2 + colOffset2;
+          float periodScale2 = 0.2;
+          float maxVal2 = 1.0 / periodScale2; // 5.0
+          float progress2 = fract(val2 * periodScale2) * maxVal2;
+          float streakLength2 = 2.5;
+          float activeStreak2 = max(0.0, progress2 - (maxVal2 - streakLength2));
+          float streakValue2 = pow(activeStreak2 / streakLength2, 5.0);
           float dx2 = abs(fract(coordX2) - 0.5);
           float pxWidth2 = fwidth(coordX2);
           float hWidth2 = max(0.06, 0.8 * pxWidth2);
@@ -186,15 +180,20 @@ export class Atmosphere {
           float glowProfile2 = smoothstep(hWidth2 + edge2, hWidth2 - edge2, dx2);
           float streak2 = streakValue2 * glowProfile2 * active2;
           vec3 col2 = mix(uColor2, uColor3, hash(colIndex2 + 12.0));
-          // Stream 3: Wider, soft background trails
-          float freq3 = 95.0;
+          // Stream 3: Wider, soft background trails (starfall segments)
+          float freq3 = 80.0;
           float coordX3 = vUv.x * freq3;
           float colIndex3 = floor(coordX3);
-          float active3 = step(0.70, hash(colIndex3 + 99.0));
-          float flow3 = vUv.y + speedMultiplier * 0.7;
-          float offset3 = hash(colIndex3 + 40.0) * 15.0;
-          float n3 = noise(vec2(colIndex3, flow3 * 0.25 + offset3));
-          float streakValue3 = smoothstep(0.60, 0.85, n3) * n3;
+          float active3 = step(0.60, hash(colIndex3 + 99.0)); // 40% density
+          float colSpeed3 = 0.8 + 0.3 * hash(colIndex3 + 31.0);
+          float colOffset3 = hash(colIndex3 + 57.0) * 25.0;
+          float val3 = vUv.y + speedMultiplier * colSpeed3 + colOffset3;
+          float periodScale3 = 0.25;
+          float maxVal3 = 1.0 / periodScale3; // 4.0
+          float progress3 = fract(val3 * periodScale3) * maxVal3;
+          float streakLength3 = 3.0;
+          float activeStreak3 = max(0.0, progress3 - (maxVal3 - streakLength3));
+          float streakValue3 = pow(activeStreak3 / streakLength3, 3.0);
           float dx3 = abs(fract(coordX3) - 0.5);
           float pxWidth3 = fwidth(coordX3);
           float hWidth3 = max(0.08, 0.8 * pxWidth3);
@@ -202,7 +201,7 @@ export class Atmosphere {
           float glowProfile3 = smoothstep(hWidth3 + edge3, hWidth3 - edge3, dx3);
           float streak3 = streakValue3 * glowProfile3 * active3;
           vec3 col3 = mix(uColor3, uColor1, hash(colIndex3 + 5.0));
-          vec3 streakColor = col2 * streak2 * 1.8 + col3 * streak3 * 1.2;
+          vec3 streakColor = col2 * streak2 * 2.0 + col3 * streak3 * 1.3;
           float fade = smoothstep(0.12, 0.45, vUv.y);
           vec3 finalColor = ambientGlow + streakColor * fade * 1.5 * uStreaksIntensity;
           gl_FragColor = vec4(finalColor, 1.0);
@@ -228,38 +227,32 @@ export class Atmosphere {
         float hash(float n) {
           return fract(sin(n) * 43758.5453);
         }
-        float noise(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          float n = i.x + i.y * 57.0;
-          return mix(
-            mix(hash(n), hash(n + 1.0), f.x),
-            mix(hash(n + 57.0), hash(n + 58.0), f.x),
-            f.y
-          );
-        }
         void main() {
           float speedMultiplier = uTime * uSpeed * 0.46;
-          // Stream 1: Narrow, elegant streaks
+          // Stream 1: Narrow, elegant streaks (starfall segments)
           float freq1 = 220.0;
           float coordX1 = vUv.x * freq1;
           float colIndex1 = floor(coordX1);
-          float active1 = step(0.55, hash(colIndex1 + 1.0));
-          float flow1 = vUv.y + speedMultiplier * 1.5;
-          float offset1 = hash(colIndex1) * 20.0;
-          float n1 = noise(vec2(colIndex1, flow1 * 0.6 + offset1));
-          float streakValue1 = smoothstep(0.68, 0.92, n1) * n1;
+          float active1 = step(0.40, hash(colIndex1 + 1.0)); // 60% density
+          float colSpeed1 = 1.8 + 0.6 * hash(colIndex1 + 13.0);
+          float colOffset1 = hash(colIndex1 + 27.0) * 15.0;
+          float val1 = vUv.y + speedMultiplier * colSpeed1 + colOffset1;
+          float periodScale1 = 0.15;
+          float maxVal1 = 1.0 / periodScale1; // 6.666
+          float progress1 = fract(val1 * periodScale1) * maxVal1;
+          float streakLength1 = 2.0;
+          float activeStreak1 = max(0.0, progress1 - (maxVal1 - streakLength1));
+          float streakValue1 = pow(activeStreak1 / streakLength1, 8.0);
           float dx1 = abs(fract(coordX1) - 0.5);
           float pxWidth1 = fwidth(coordX1);
           float hWidth1 = max(0.04, 0.8 * pxWidth1);
           float edge1 = pxWidth1 * 1.2;
           float glowProfile1 = smoothstep(hWidth1 + edge1, hWidth1 - edge1, dx1);
           float streak1 = streakValue1 * glowProfile1 * active1;
-          vec3 col1 = mix(uColor1, uColor2, hash(colIndex1));
+          vec3 col1 = mix(uColor1, uColor2, hash(colIndex1 + 7.0));
           float fade = smoothstep(0.12, 0.45, vUv.y);
           float alpha = streak1 * fade * uStreaksIntensity;
-          gl_FragColor = vec4(col1 * 2.5, alpha);
+          gl_FragColor = vec4(col1 * 2.8, alpha);
         }
       `
     });
