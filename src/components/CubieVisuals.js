@@ -37,15 +37,15 @@ export function createCubieMaterials() {
       envMapIntensity: 1.5,
     }),
     tileMaterial: new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      roughness: 0.005,
-      metalness: 0.0,
+      color: 0x3a3a3a,
+      roughness: 0.01,
+      metalness: 0.95,
       clearcoat: 1.0,
       clearcoatRoughness: 0.0,
       transmission: 0.0,
-      ior: 1.6,
+      ior: 1.8,
       specularIntensity: 1.0,
-      envMapIntensity: 2.2,
+      envMapIntensity: 4.5,
     }),
   };
 }

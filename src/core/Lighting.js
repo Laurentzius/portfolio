@@ -68,19 +68,7 @@ export class Lighting {
   }
 
   initEnvironment() {
-    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    pmremGenerator.compileEquirectangularShader();
-
-    const envScene = new THREE.Scene();
-    
-    // Dark studio walls for specular contrast
-    const bgGeo = new THREE.SphereGeometry(6, 32, 16);
-    const bgMat = new THREE.MeshBasicMaterial({
-      color: 0x1c1c1c,
-      side: THREE.BackSide
-    });
-    const bgMesh = new THREE.Mesh(bgGeo, bgMat);
-    envScene.add(bgMesh);
+    this.studioLightsGroup = new THREE.Group();
 
     // Emissive panels (strip lights)
     const stripGeo = new THREE.PlaneGeometry(1.5, 6);
@@ -94,28 +82,32 @@ export class Lighting {
     const lightTop = new THREE.Mesh(squareGeo, lightMat);
     lightTop.position.set(0, 5.5, 0);
     lightTop.rotation.x = Math.PI / 2;
-    envScene.add(lightTop);
+    this.studioLightsGroup.add(lightTop);
 
     // Right-front vertical strip
     const stripRF = new THREE.Mesh(stripGeo, lightMat);
     stripRF.position.set(4, 2, 4);
     stripRF.lookAt(0, 0, 0);
-    envScene.add(stripRF);
+    this.studioLightsGroup.add(stripRF);
 
     // Left-back vertical strip
     const stripLB = new THREE.Mesh(stripGeo, lightMat);
     stripLB.position.set(-4, 2, -4);
     stripLB.lookAt(0, 0, 0);
-    envScene.add(stripLB);
+    this.studioLightsGroup.add(stripLB);
 
     // Top-left horizontal strip
     const stripTL = new THREE.Mesh(stripGeo, lightMat);
     stripTL.position.set(-4, 5, 2);
     stripTL.rotation.z = Math.PI / 4;
     stripTL.lookAt(0, 0, 0);
-    envScene.add(stripTL);
+    this.studioLightsGroup.add(stripTL);
 
-    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+    this.studioLightsGroup.visible = false; // Hide from main render pass
+    this.scene.add(this.studioLightsGroup);
+
+    // Use 128 resolution for great performance and smooth reflections
+    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(128, {
       generateMipmaps: true,
       minFilter: THREE.LinearMipmapLinearFilter,
       magFilter: THREE.LinearFilter,
@@ -123,21 +115,79 @@ export class Lighting {
       type: THREE.UnsignedByteType,
     });
     
-    const cubeCamera = new THREE.CubeCamera(0.1, 10, cubeRenderTarget);
-    cubeCamera.update(this.renderer, envScene);
+    // Far = 50.0 to capture the background atmosphere cylinder (radius 22 and 26)
+    this.cubeCamera = new THREE.CubeCamera(0.1, 50.0, this.cubeRenderTarget);
+    this.scene.add(this.cubeCamera);
 
-    const envMap = pmremGenerator.fromCubemap(cubeRenderTarget.texture).texture;
-    
-    // Set to scene
-    this.scene.environment = envMap;
+    // Assign the dynamic CubeTexture as the scene environment
+    this.scene.environment = this.cubeRenderTarget.texture;
 
-    // Dispose temporary resources
-    cubeRenderTarget.dispose();
-    pmremGenerator.dispose();
-    bgGeo.dispose();
-    bgMat.dispose();
-    stripGeo.dispose();
-    squareGeo.dispose();
-    lightMat.dispose();
+    this.geometriesToDispose = [stripGeo, squareGeo];
+    this.materialsToDispose = [lightMat];
+  }
+
+  update(experience) {
+    if (!this.cubeCamera || !this.renderer) return;
+
+    // 1. Hide objects we don't want in the reflection
+    const rubiksGroup = experience.rubiksCube?.group;
+    const glassGroup = experience.glassBoard?.group;
+    const looseCubies = experience.looseCubies;
+
+    let wasRubiksVisible = false;
+    if (rubiksGroup) {
+      wasRubiksVisible = rubiksGroup.visible;
+      rubiksGroup.visible = false;
+    }
+
+    let wasGlassVisible = false;
+    if (glassGroup) {
+      wasGlassVisible = glassGroup.visible;
+      glassGroup.visible = false;
+    }
+
+    const looseVisibilities = [];
+    if (looseCubies) {
+      looseCubies.forEach((cubie, i) => {
+        looseVisibilities[i] = cubie.group.visible;
+        cubie.group.visible = false;
+      });
+    }
+
+    // 2. Show studio lights for the cube camera render
+    if (this.studioLightsGroup) {
+      this.studioLightsGroup.visible = true;
+    }
+
+    // 3. Render the environment scene (captures atmosphere + studio lights)
+    this.cubeCamera.update(this.renderer, this.scene);
+
+    // 4. Restore visibilities for the main camera render
+    if (this.studioLightsGroup) {
+      this.studioLightsGroup.visible = false;
+    }
+    if (rubiksGroup) {
+      rubiksGroup.visible = wasRubiksVisible;
+    }
+    if (glassGroup) {
+      glassGroup.visible = wasGlassVisible;
+    }
+    if (looseCubies) {
+      looseCubies.forEach((cubie, i) => {
+        cubie.group.visible = looseVisibilities[i];
+      });
+    }
+  }
+
+  destroy() {
+    if (this.cubeRenderTarget) {
+      this.cubeRenderTarget.dispose();
+    }
+    if (this.geometriesToDispose) {
+      this.geometriesToDispose.forEach(g => g.dispose());
+    }
+    if (this.materialsToDispose) {
+      this.materialsToDispose.forEach(m => m.dispose());
+    }
   }
 }

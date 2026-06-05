@@ -290,6 +290,9 @@ export class Experience {
       }
 
       // Render scene
+      if (this.lighting && this.lighting.update) {
+        this.lighting.update(this);
+      }
       this.renderer.render(this.scene, this.camera);
 
       // Loop
@@ -317,7 +320,9 @@ export class Experience {
     if (this.atmosphere) {
       this.atmosphere.destroy();
     }
-
+    if (this.lighting && this.lighting.destroy) {
+      this.lighting.destroy();
+    }
     this.renderer.dispose();
   }
 }
