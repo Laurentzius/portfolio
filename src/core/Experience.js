@@ -205,16 +205,25 @@ export class Experience {
     const progress = Math.min(elapsed / this.cameraAnimation.duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
 
-    this.camera.position.lerpVectors(
-      this.cameraAnimation.fromPosition,
-      this.cameraAnimation.toPosition,
-      eased
-    );
-    this.controls.target.lerpVectors(
+    const currentTarget = new THREE.Vector3().lerpVectors(
       this.cameraAnimation.fromTarget,
       this.cameraAnimation.toTarget,
       eased
     );
+    const fromOffset = new THREE.Vector3().subVectors(this.cameraAnimation.fromPosition, this.cameraAnimation.fromTarget);
+    const toOffset = new THREE.Vector3().subVectors(this.cameraAnimation.toPosition, this.cameraAnimation.toTarget);
+    const distStart = fromOffset.length();
+    const distEnd = toOffset.length();
+    const currentDist = THREE.MathUtils.lerp(distStart, distEnd, eased);
+    const dirStart = fromOffset.clone().normalize();
+    const dirEnd = toOffset.clone().normalize();
+    // Slerp the directions using Quaternion rotation
+    const q = new THREE.Quaternion().setFromUnitVectors(dirStart, dirEnd);
+    const qIdentity = new THREE.Quaternion();
+    const qInterpolated = new THREE.Quaternion().slerpQuaternions(qIdentity, q, eased);
+    const currentDir = dirStart.clone().applyQuaternion(qInterpolated).normalize();
+    this.camera.position.copy(currentTarget).addScaledVector(currentDir, currentDist);
+    this.controls.target.copy(currentTarget);
 
     if (progress === 1) {
       this.cameraAnimation = null;
