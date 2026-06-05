@@ -1,0 +1,35 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PortfolioHUD from '../components/PortfolioHUD.jsx';
+---
+
+<Layout
+  title="Minimalist Glossy Rubik's Cube"
+  description="Интерактивный трехмерный кубик Рубика в минималистичном белом стиле с реалистичными тенями и глянцевыми отражениями."
+>
+  <!-- Loading Screen -->
+  <div id="loader" class="loader-container">
+    <div class="loader-spinner"></div>
+    <p class="loader-text">Инициализация 3D...</p>
+  </div>
+
+  <!-- 3D Canvas -->
+  <canvas id="webgl"></canvas>
+
+  <!-- HUD + Portfolio Navigation (React island, hydrated on load) -->
+  <PortfolioHUD client:load />
+
+  <script>
+    import { Experience } from '../core/Experience.js';
+
+    const experience = new Experience('webgl');
+    window.experience = experience;
+
+    const loader = document.getElementById('loader');
+    setTimeout(() => {
+      if (loader) {
+        loader.classList.add('fade-out');
+      }
+    }, 600);
+  </script>
+</Layout>
