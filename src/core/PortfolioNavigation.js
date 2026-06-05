@@ -24,7 +24,7 @@ export class PortfolioNavigation {
     }
 
     if (this.audioEngine) {
-      this.audioEngine.playCubeClack();
+      this.audioEngine.playNavTick();
     }
   }
 

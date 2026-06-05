@@ -6,6 +6,7 @@ export class Lighting {
     this.renderer = renderer;
 
     this.unlockPulseUntil = 0;
+    this.environmentResolution = 512;
     this.initLights();
     this.initEnvironment();
   }
@@ -169,8 +170,8 @@ export class Lighting {
     this.studioLightsGroup.visible = false; // Hide from main render pass
     this.scene.add(this.studioLightsGroup);
 
-    // Dynamic cubemap updates every frame; keep it lighter so reflections stay smooth during twists.
-    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+    // Dynamic cubemap updates every frame; adaptive resolution keeps twists smooth and idle reflections crisp.
+    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(this.environmentResolution, {
       generateMipmaps: false,
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
@@ -187,6 +188,12 @@ export class Lighting {
 
     this.geometriesToDispose = [stripGeo, squareGeo];
     this.materialsToDispose = [stripMat, squareMat];
+  }
+
+  setEnvironmentResolution(size) {
+    if (!this.cubeRenderTarget || this.environmentResolution === size) return;
+    this.environmentResolution = size;
+    this.cubeRenderTarget.setSize(size, size);
   }
 
   setSectionAccent(sectionId) {
@@ -220,6 +227,10 @@ export class Lighting {
 
     const now = performance.now();
     this.updateLightEffects(now);
+    const cube = experience.rubiksCube;
+    const cubeIsTwisting = Boolean(cube?.isDragging || cube?.isSnapping || cube?.isAnimating);
+    this.setEnvironmentResolution(cubeIsTwisting ? 512 : 768);
+
 
     // 1. Hide objects we don't want in the reflection
     const rubiksGroups = [

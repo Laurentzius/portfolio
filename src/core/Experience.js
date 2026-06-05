@@ -136,6 +136,9 @@ export class Experience {
       if (this.lighting) {
         this.lighting.triggerUnlockPulse();
       }
+      if (this.audioEngine) {
+        this.audioEngine.playUnlock();
+      }
     };
     window.addEventListener('cube-restored', this.onCubeRestored);
 

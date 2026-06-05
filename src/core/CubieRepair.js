@@ -47,7 +47,7 @@ export class CubieRepair {
 
   snap(loose, targetPos) {
     if (this.audioEngine) {
-      this.audioEngine.playCubeClack();
+      this.audioEngine.playAttach();
     }
 
     if (loose.isDragging) {

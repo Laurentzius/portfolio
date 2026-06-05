@@ -92,6 +92,8 @@ export class Atmosphere {
     const geoBg = this.createCycloramaGeometry(10.0, 16.0); // radiusWall = 26.0
     // 2. Foreground layer: contains narrow streaks (Stream 1) close to the scene, transparent background
     const geoFg = this.createCycloramaGeometry(8.0, 14.0); // radiusWall = 22.0
+    // 3. Far mist layer: very faint slow streaks between foreground and background for extra depth.
+    const geoFar = this.createCycloramaGeometry(9.0, 15.0); // radiusWall = 24.0
     const getUniforms = () => ({
       uTime: { value: 0 },
       uSpeed: { value: this.current.speed },
@@ -191,6 +193,48 @@ export class Atmosphere {
         }
       `
     });
+    this.materialFar = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      toneMapped: false,
+      transparent: true,
+      depthWrite: false,
+      uniforms: getUniforms(),
+      vertexShader,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uSpeed;
+        uniform vec3 uColor2;
+        uniform vec3 uColor3;
+        uniform float uStreaksIntensity;
+        varying vec2 vUv;
+        varying vec3 vWorldPosition;
+        float hash(float n) {
+          return fract(sin(n) * 43758.5453);
+        }
+        void main() {
+          float y = vWorldPosition.y;
+          float speedMultiplier = uTime * uSpeed * 6.0;
+          float freq = 52.0;
+          float coordX = vUv.x * freq;
+          float colIndex = floor(coordX);
+          float active = step(0.72, hash(colIndex + 143.0));
+          float colSpeed = 0.55 + 0.25 * hash(colIndex + 37.0);
+          float colOffset = hash(colIndex + 81.0) * 240.0;
+          float progress = fract((y + speedMultiplier * colSpeed + colOffset) * 0.0125) * 80.0;
+          float streakLength = 46.0;
+          float activeStreak = max(0.0, streakLength - progress);
+          float streakValue = pow(activeStreak / streakLength, 2.4) * smoothstep(0.0, 1.4, progress);
+          float dx = abs(fract(coordX) - 0.5);
+          float pxWidth = fwidth(coordX);
+          float profile = smoothstep(0.05 + pxWidth, 0.05 - pxWidth, dx);
+          float fade = smoothstep(-60.0, -30.0, y);
+          float alpha = streakValue * profile * active * fade * uStreaksIntensity * 0.18;
+          vec3 color = mix(uColor2, uColor3, hash(colIndex + 17.0)) * 1.15;
+          gl_FragColor = vec4(color, alpha);
+        }
+      `
+    });
+
     // Foreground shader material (Stream 1 only, transparent background)
     this.materialFg = new THREE.ShaderMaterial({
       side: THREE.BackSide,
@@ -245,6 +289,10 @@ export class Atmosphere {
     this.meshBg.position.set(0, 0, 0);
     this.meshBg.receiveShadow = true;
     this.scene.add(this.meshBg);
+    this.meshFar = new THREE.Mesh(geoFar, this.materialFar);
+    this.meshFar.position.set(0, 0, 0);
+    this.scene.add(this.meshFar);
+
     this.meshFg = new THREE.Mesh(geoFg, this.materialFg);
     this.meshFg.position.set(0, 0, 0);
     this.meshFg.receiveShadow = true;
@@ -301,6 +349,7 @@ export class Atmosphere {
 
     };
     updateMaterial(this.materialBg);
+    updateMaterial(this.materialFar);
     updateMaterial(this.materialFg);
   }
   destroy() {
@@ -308,8 +357,15 @@ export class Atmosphere {
       this.scene.remove(this.meshBg);
       this.meshBg.geometry.dispose();
     }
+    if (this.meshFar) {
+      this.scene.remove(this.meshFar);
+      this.meshFar.geometry.dispose();
+    }
     if (this.materialBg) {
       this.materialBg.dispose();
+    }
+    if (this.materialFar) {
+      this.materialFar.dispose();
     }
     if (this.meshFg) {
       this.scene.remove(this.meshFg);

@@ -21,6 +21,45 @@ export class AudioEngine {
     }
   }
 
+  playTone({ frequency, endFrequency, duration, gainValue, type = 'sine' }) {
+    this.init();
+    this.resume();
+    if (!this.ctx) return;
+
+    const time = this.ctx.currentTime;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency, time);
+      if (endFrequency) {
+        osc.frequency.exponentialRampToValueAtTime(endFrequency, time + duration);
+      }
+      gain.gain.setValueAtTime(gainValue, time);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(time + duration);
+    } catch (e) {
+      // Ignore suspended context edge cases.
+    }
+  }
+
+  playNavTick() {
+    this.playTone({ frequency: 520, endFrequency: 720, duration: 0.035, gainValue: 0.018, type: 'triangle' });
+  }
+
+  playAttach() {
+    this.playTone({ frequency: 180, endFrequency: 90, duration: 0.08, gainValue: 0.055, type: 'sine' });
+    this.playTone({ frequency: 880, endFrequency: 520, duration: 0.018, gainValue: 0.012, type: 'triangle' });
+  }
+
+  playUnlock() {
+    this.playTone({ frequency: 260, endFrequency: 520, duration: 0.18, gainValue: 0.028, type: 'sine' });
+    window.setTimeout(() => this.playTone({ frequency: 390, endFrequency: 780, duration: 0.16, gainValue: 0.022, type: 'sine' }), 85);
+  }
+
   playCubeClack() {
     this.init();
     this.resume();
