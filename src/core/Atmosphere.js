@@ -139,7 +139,7 @@ export class Atmosphere {
           float radialGlow = 1.0 - smoothstep(0.0, 0.76, length(centerDist));
           vec3 ambientGlow = uBgColor + uGlowColor * radialGlow * uGlowIntensity * 0.38;
           float y = vWorldPosition.y;
-          float speedMultiplier = uTime * uSpeed * 18.0;
+          float speedMultiplier = uTime * uSpeed * 10.0;
           // Stream 2: Medium-width glowing trails (starfall segments)
           float freq2 = 140.0;
           float coordX2 = vUv.x * freq2;
@@ -151,9 +151,9 @@ export class Atmosphere {
           float periodScale2 = 0.02;
           float maxVal2 = 50.0;
           float progress2 = fract(val2 * periodScale2) * maxVal2;
-          float streakLength2 = 15.0;
+          float streakLength2 = 22.0;
           float activeStreak2 = max(0.0, streakLength2 - progress2);
-          float headGlow2 = exp(-progress2 * (14.0 / 15.0));
+          float headGlow2 = exp(-progress2 * (14.0 / 22.0));
           float streakValue2 = pow(activeStreak2 / streakLength2, 5.0) * smoothstep(0.0, 1.0, progress2) * (1.0 + 1.6 * headGlow2);
           float dx2 = abs(fract(coordX2) - 0.5);
           float pxWidth2 = fwidth(coordX2);
@@ -173,9 +173,9 @@ export class Atmosphere {
           float periodScale3 = 0.0166;
           float maxVal3 = 60.0;
           float progress3 = fract(val3 * periodScale3) * maxVal3;
-          float streakLength3 = 18.0;
+          float streakLength3 = 26.0;
           float activeStreak3 = max(0.0, streakLength3 - progress3);
-          float headGlow3 = exp(-progress3 * (12.0 / 18.0));
+          float headGlow3 = exp(-progress3 * (12.0 / 26.0));
           float streakValue3 = pow(activeStreak3 / streakLength3, 3.0) * smoothstep(0.0, 1.2, progress3) * (1.0 + 1.6 * headGlow3);
           float dx3 = abs(fract(coordX3) - 0.5);
           float pxWidth3 = fwidth(coordX3);
@@ -212,7 +212,7 @@ export class Atmosphere {
         }
         void main() {
           float y = vWorldPosition.y;
-          float speedMultiplier = uTime * uSpeed * 18.0;
+          float speedMultiplier = uTime * uSpeed * 10.0;
           // Stream 1: Narrow, elegant streaks (starfall segments)
           float freq1 = 220.0;
           float coordX1 = vUv.x * freq1;
@@ -224,9 +224,9 @@ export class Atmosphere {
           float periodScale1 = 0.025;
           float maxVal1 = 40.0;
           float progress1 = fract(val1 * periodScale1) * maxVal1;
-          float streakLength1 = 12.0;
+          float streakLength1 = 18.0;
           float activeStreak1 = max(0.0, streakLength1 - progress1);
-          float headGlow1 = exp(-progress1 * (16.0 / 12.0));
+          float headGlow1 = exp(-progress1 * (16.0 / 18.0));
           float streakValue1 = pow(activeStreak1 / streakLength1, 8.0) * smoothstep(0.0, 0.8, progress1) * (1.0 + 1.8 * headGlow1);
           float dx1 = abs(fract(coordX1) - 0.5);
           float pxWidth1 = fwidth(coordX1);
