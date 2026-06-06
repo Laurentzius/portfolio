@@ -43,7 +43,7 @@ export class LooseCubie {
   }
 
   addTile(geometry, faceName) {
-    const tileMesh = createCubieTile(geometry, this.tileMaterial, faceName, { isLooseCubie: true, parentClass: this });
+    const tileMesh = createCubieTile(geometry, this.tileMaterial.clone(), faceName, { isLooseCubie: true, parentClass: this, faceName: faceName });
     this.group.add(tileMesh);
   }
 

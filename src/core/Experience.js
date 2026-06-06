@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { gsap } from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AudioEngine } from '../components/AudioEngine.js';
 import { Lighting } from './Lighting.js';
@@ -28,7 +29,9 @@ export class Experience {
     if (!this.canvas) {
       throw new Error(`Canvas with id "${canvasId}" not found.`);
     }
-
+    this.currentSection = 'welcome';
+    this.logosIntensity = 0.0;
+    this.logoTextures = null;
     this.initCore();
     this.initSystems();
     this.startLoop();
@@ -169,6 +172,8 @@ export class Experience {
 
     // 6. Interaction Coordinator (routes click and drag inputs)
     this.interactionManager = new InteractionManager(this);
+    // Load logo SVGs and apply them to the cube tiles
+    this.loadLogos();
 
     // Handle resize
     this.resizeHandler = this.onResize.bind(this);
@@ -221,6 +226,17 @@ export class Experience {
     }
     if (this.socialModels) {
       this.socialModels.setVisible(sectionId === 'contact');
+    }
+    const isSkills = sectionId === 'skills';
+    gsap.to(this, {
+      logosIntensity: isSkills ? 4.0 : 0.0,
+      duration: 0.8,
+      overwrite: 'auto'
+    });
+    if (sectionId === 'skills') {
+      this.startSkillsShuffleTimer();
+    } else {
+      this.stopSkillsShuffleTimer();
     }
     if (SECTION_CAMERA_POSES[sectionId]) {
       this.animateCameraToSection(sectionId);
@@ -321,6 +337,7 @@ export class Experience {
       if (this.rubiksCube) {
         this.rubiksCube.update();
       }
+      this.updateLogosProjection();
 
       // Update loose cubies rotation & inertia with dt
       if (this.looseCubies) {
@@ -359,7 +376,174 @@ export class Experience {
     tick();
   }
 
+  async loadLogos() {
+    const logos = [
+      'codex', 'claudecode', 'gemini', 'astro',
+      'next', 'react', 'svelte', 'python',
+      'ts', 'elixir', 'go', 'postgres'
+    ];
+    const BRAND_COLORS = {
+      codex: '#10a37f', // OpenAI Green
+      claudecode: '#d97757',
+      gemini: '#8e75b2',
+      astro: '#bc52ee',
+      next: '#ffffff',
+      react: '#61dafb',
+      svelte: '#ff3e00',
+      python: '#3776ab',
+      ts: '#3178c6',
+      elixir: '#4b275f',
+      go: '#00add8',
+      postgres: '#4169e1'
+    };
+    const textures = {};
+    for (const logo of logos) {
+      try {
+        const res = await fetch(`/icons/${logo}.svg`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const svgText = await res.text();
+        let processedSvg = svgText;
+        const brandColor = BRAND_COLORS[logo] || '#ffffff';
+        // Ensure root <svg> has width and height attributes so browser drawImage works reliably
+        if (!processedSvg.match(/<svg[^>]*\bwidth\b/)) {
+          processedSvg = processedSvg.replace('<svg', '<svg width="256" height="256"');
+        }
+        // Add fill color to the root <svg> tag if it doesn't have one, or override it.
+        if (processedSvg.includes('currentColor')) {
+          processedSvg = processedSvg.replace(/currentColor/g, brandColor);
+        }
+        // Remove any existing fill="..." on the root <svg> tag so we can set our brand color
+        processedSvg = processedSvg.replace(/<svg([^>]*)fill="[^"]*"/g, '<svg$1');
+        // Inject our brand fill
+        processedSvg = processedSvg.replace('<svg', `<svg fill="${brandColor}"`);
+        // Override explicit inner fill to brand color
+        processedSvg = processedSvg.replace(/fill="#000000"/g, `fill="${brandColor}"`);
+        processedSvg = processedSvg.replace(/fill="#000"/g, `fill="${brandColor}"`);
+        processedSvg = processedSvg.replace(/fill="black"/g, `fill="${brandColor}"`);
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 256, 256);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const img = new Image();
+        const svgBlob = new Blob([processedSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        img.onload = () => {
+          const padding = 32;
+          const size = 256 - padding * 2;
+          ctx.drawImage(img, padding, padding, size, size);
+          texture.needsUpdate = true;
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+        textures[logo] = texture;
+      } catch (err) {
+        console.error(`Failed to load logo SVG for ${logo}:`, err);
+      }
+    }
+    this.logoTextures = textures;
+  }
+  updateLogosProjection() {
+    if (!this.rubiksCube) return;
+    const allTiles = [];
+    allTiles.push(...this.rubiksCube.tiles);
+    this.looseCubies.forEach(loose => {
+      loose.group.traverse(child => {
+        if (child.isMesh && child !== loose.bodyMesh) {
+          allTiles.push(child);
+        }
+      });
+    });
+    const rightLogos = [
+      'react', 'svelte', 'astro',
+      'ts', 'codex', 'claudecode',
+      'python', 'go', 'postgres'
+    ];
+    allTiles.forEach(tile => {
+      const cubie = tile.parent;
+      if (!cubie) return;
+      const worldPos = new THREE.Vector3();
+      tile.getWorldPosition(worldPos);
+      const localPos = worldPos.clone();
+      this.rubiksCube.cubeGroup.worldToLocal(localPos);
+      // Check if the tile is on the RIGHT face of the Rubik's cube
+      const isOnRightFace = localPos.x > 1.2 &&
+                            Math.abs(localPos.y) < 1.6 &&
+                            Math.abs(localPos.z) < 1.6;
+      if (isOnRightFace) {
+        // Grid on Right face: Row is Y (Top to Bottom), Col is Z (Front to Back)
+        const col = 1 - Math.round(localPos.z); // Z ≈ 1 -> 0, Z ≈ 0 -> 1, Z ≈ -1 -> 2
+        const row = 1 - Math.round(localPos.y); // Y ≈ 1 -> 0, Y ≈ 0 -> 1, Y ≈ -1 -> 2
+        if (col >= 0 && col <= 2 && row >= 0 && row <= 2) {
+          const gridIndex = row * 3 + col;
+          const logoName = rightLogos[gridIndex];
+          const texture = this.logoTextures ? this.logoTextures[logoName] : null;
+          if (tile.material) {
+            tile.material.map = null;
+            if (texture) {
+              tile.material.emissiveMap = texture;
+              tile.material.emissive.set('#ffffff');
+              tile.material.emissiveIntensity = this.logosIntensity || 0.0;
+              // Rotate the texture to keep the logo upright in world space (project to YZ plane)
+              const tileLocalY = new THREE.Vector3(0, 1, 0).applyQuaternion(tile.quaternion);
+              const tileWorldY = tileLocalY.clone().applyQuaternion(cubie.quaternion);
+              const angle = Math.atan2(tileWorldY.z, tileWorldY.y);
+              texture.center.set(0.5, 0.5);
+              texture.rotation = -angle;
+            } else {
+              tile.material.emissiveMap = null;
+              tile.material.emissiveIntensity = 0.0;
+            }
+            tile.material.needsUpdate = true;
+          }
+        }
+      } else {
+        // Clear emissive map for tiles not on the right face
+        if (tile.material) {
+          tile.material.map = null;
+          tile.material.emissiveMap = null;
+          tile.material.emissiveIntensity = 0.0;
+          tile.material.needsUpdate = true;
+        }
+      }
+    });
+  }
+  startSkillsShuffleTimer() {
+    this.stopSkillsShuffleTimer();
+    this.skillsShuffleTimer = setInterval(() => {
+      if (this.currentSection === 'skills' && this.rubiksCube && !this.rubiksCube.isLocked) {
+        const minMoves = 1;
+        const maxMoves = 3;
+        const numMoves = Math.floor(Math.random() * (maxMoves - minMoves + 1)) + minMoves;
+        const axes = ['X', 'Y', 'Z'];
+        const slices = [-1, 0, 1];
+        const turns = [-1, 1];
+        for (let i = 0; i < numMoves; i++) {
+          const axis = axes[Math.floor(Math.random() * axes.length)];
+          const slice = slices[Math.floor(Math.random() * slices.length)];
+          const turn = turns[Math.floor(Math.random() * turns.length)];
+          this.rubiksCube.animationQueue.push({
+            axis,
+            slice,
+            turns: turn,
+            duration: 350,
+            recordInHistory: true
+          });
+        }
+      }
+    }, 6000);
+  }
+  stopSkillsShuffleTimer() {
+    if (this.skillsShuffleTimer) {
+      clearInterval(this.skillsShuffleTimer);
+      this.skillsShuffleTimer = null;
+    }
+  }
   destroy() {
+    this.stopSkillsShuffleTimer();
     cancelAnimationFrame(this.frameId);
     window.removeEventListener('resize', this.resizeHandler);
     window.removeEventListener('cube-restored', this.onCubeRestored);
