@@ -6,6 +6,7 @@ import { Atmosphere } from './Atmosphere.js';
 import { RubiksCube } from '../components/RubiksCube.js';
 import { LooseCubie } from '../components/LooseCubie.js';
 import { GlassBoard } from '../components/GlassBoard.js';
+import { SocialModels } from '../components/SocialModels.js';
 import { InteractionManager } from '../utils/InteractionManager.js';
 import { PortfolioNavigation } from './PortfolioNavigation.js';
 import { LooseCubiePhysics } from './LooseCubiePhysics.js';
@@ -118,6 +119,7 @@ export class Experience {
     this.navigation = new PortfolioNavigation(this.glassBoard, this.audioEngine);
     this.physics = new LooseCubiePhysics();
     this.repairNarrative = new RepairNarrative(this.scene, this.rubiksCube, this.glassBoard);
+    this.socialModels = new SocialModels(this.scene);
     this.repair = new CubieRepair({
       rubiksCube: this.rubiksCube,
       looseCubies: this.looseCubies,
@@ -187,6 +189,12 @@ export class Experience {
     }
     if (this.atmosphere) {
       this.atmosphere.setSection(sectionId);
+    }
+    if (this.socialModels) {
+      this.socialModels.setVisible(sectionId === 'contact');
+    }
+    if (this.glassBoard) {
+      this.glassBoard.setSuppressed(sectionId === 'contact');
     }
     if (SECTION_CAMERA_POSES[sectionId]) {
       this.animateCameraToSection(sectionId);
@@ -297,6 +305,10 @@ export class Experience {
         this.repairNarrative.update(dt);
       }
 
+      if (this.socialModels) {
+        this.socialModels.update(dt);
+      }
+
       if (this.atmosphere) {
         this.atmosphere.update(dt);
       }
@@ -331,6 +343,9 @@ export class Experience {
     }
     if (this.atmosphere) {
       this.atmosphere.destroy();
+    }
+    if (this.socialModels) {
+      this.socialModels.destroy();
     }
     if (this.lighting && this.lighting.destroy) {
       this.lighting.destroy();

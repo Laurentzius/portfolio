@@ -119,7 +119,13 @@ export class InteractionManager {
     // Set cursor styling
     let isHoveringInteractable = false;
 
-    if (this.exp.rubiksCube) {
+    if (this.exp.socialModels?.visible) {
+      const socialHit = this.exp.socialModels.hitTest(this.raycaster);
+      this.exp.socialModels.setHover(socialHit?.object.userData.socialRoot ?? null);
+      if (socialHit) isHoveringInteractable = true;
+    }
+
+    if (!isHoveringInteractable && this.exp.rubiksCube) {
       const intersects = this.raycaster.intersectObjects(this.exp.rubiksCube.cubeGroup.children, true);
       const tileHit = intersects.find(intersect => intersect.object.userData.isTile);
       if (tileHit) isHoveringInteractable = true;
@@ -131,6 +137,7 @@ export class InteractionManager {
       const looseHit = intersects.find(intersect => intersect.object.userData.isLooseCubie);
       if (looseHit) isHoveringInteractable = true;
     }
+
 
     this.exp.canvas.style.cursor = isHoveringInteractable ? 'grab' : 'default';
   }
@@ -145,6 +152,8 @@ export class InteractionManager {
     if (isQuickClick) {
       this.updateMouseCoords(e);
       this.raycaster.setFromCamera(this.mouse, this.exp.camera);
+
+
 
 
       // A. Check loose cubies hit for case projects navigation

@@ -170,7 +170,18 @@ export class GlassBoard {
     }
   }
 
+  setSuppressed(suppressed) {
+    this.suppressed = suppressed;
+    if (suppressed) {
+      this.targetScale = 0.0;
+      this.group.visible = false;
+    } else if (this.targetScale > 0.0) {
+      this.group.visible = true;
+    }
+  }
+
   show() {
+    if (this.suppressed) return;
     this.group.visible = true;
     this.targetScale = 1.0;
   }
