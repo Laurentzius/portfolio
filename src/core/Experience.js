@@ -43,7 +43,14 @@ export class Experience {
 
     // 2. Camera
     this.camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-    this.camera.position.set(-6.4, 2.2, 7.6);
+    
+    const initialPose = SECTION_CAMERA_POSES.welcome;
+    if (this.isMobile) {
+      const dir = new THREE.Vector3().subVectors(initialPose.position, initialPose.target);
+      this.camera.position.copy(initialPose.target).addScaledVector(dir, 1.35);
+    } else {
+      this.camera.position.copy(initialPose.position);
+    }
 
     // 3. Renderer
     this.renderer = new THREE.WebGLRenderer({
@@ -79,6 +86,9 @@ export class Experience {
     this.controls.minDistance = 3.5;
     this.controls.enablePan = false; // Stay centered on the cube
     this.controls.target.set(1.0, 0.2, 0.0); // Midpoint between cube and board
+    if (this.isMobile) {
+      this.controls.enableZoom = false; // Disable zoom on mobile
+    }
   }
 
   initSystems() {
@@ -222,11 +232,18 @@ export class Experience {
     const pose = SECTION_CAMERA_POSES[sectionId];
     if (!pose) return;
 
+    let targetPosition = pose.position;
+    if (this.isMobile) {
+      // Zoom out on mobile by scaling distance from target
+      const dir = new THREE.Vector3().subVectors(pose.position, pose.target);
+      targetPosition = pose.target.clone().addScaledVector(dir, 1.35);
+    }
+
     this.cameraAnimation = {
       startedAt: performance.now(),
       duration: 760,
       fromPosition: this.camera.position.clone(),
-      toPosition: pose.position,
+      toPosition: targetPosition,
       fromTarget: this.controls.target.clone(),
       toTarget: pose.target,
     };
