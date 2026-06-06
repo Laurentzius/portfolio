@@ -156,7 +156,43 @@ export class InteractionManager {
 
 
 
-      // A. Check loose cubies hit for case projects navigation
+      // Mobile-specific click-to-assemble behavior when puzzle is locked
+      if (this.exp.isMobile && this.exp.rubiksCube && this.exp.rubiksCube.isLocked) {
+        // 1. Check if they clicked near an empty slot target pos
+        if (this.exp.looseCubies && this.exp.looseCubies.length > 0) {
+          for (let i = 0; i < this.exp.looseCubies.length; i++) {
+            const loose = this.exp.looseCubies[i];
+            if (!loose.targetPos || loose.isAttracting) continue;
+
+            const worldTarget = loose.targetPos.clone();
+            this.exp.rubiksCube.cubeGroup.localToWorld(worldTarget);
+
+            const dist = this.raycaster.ray.distanceToPoint(worldTarget);
+            if (dist < 0.75) {
+              loose.startAttraction(this.exp.repair);
+              this.resetInteractionFlags();
+              return;
+            }
+          }
+        }
+
+        // 2. Check if they clicked a loose cubie on the floor
+        if (this.exp.looseCubies && this.exp.looseCubies.length > 0) {
+          const groupsToRaycast = this.exp.looseCubies.map(cubie => cubie.group);
+          const looseIntersects = this.raycaster.intersectObjects(groupsToRaycast, true);
+          const looseHit = looseIntersects.find(intersect => intersect.object.userData.isLooseCubie);
+          if (looseHit) {
+            const cubieInstance = looseHit.object.userData.parentClass;
+            if (cubieInstance && !cubieInstance.isAttracting) {
+              cubieInstance.startAttraction(this.exp.repair);
+              this.resetInteractionFlags();
+              return;
+            }
+          }
+        }
+      }
+
+      // A. Check loose cubies hit for case projects navigation (desktop or unlocked puzzle)
       if (this.exp.looseCubies && this.exp.looseCubies.length > 0) {
         const groupsToRaycast = this.exp.looseCubies.map(cubie => cubie.group);
         const looseIntersects = this.raycaster.intersectObjects(groupsToRaycast, true);
