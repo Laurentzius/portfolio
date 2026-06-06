@@ -267,3 +267,86 @@ canvas:active {
   opacity: 1;
   visibility: visible;
 }
+
+/* Mobile Portfolio Card */
+.mobile-portfolio-card {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 96px; /* Above the bottom navigation bar */
+  padding: 20px 24px;
+  background: rgba(11, 14, 23, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 50;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  pointer-events: none; /* Allows mouse/touch interaction with the WebGL scene underneath */
+  transition: opacity 0.3s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.mobile-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 1.5px;
+}
+
+.mobile-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mobile-subtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.5px;
+}
+
+.mobile-body-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
+}
+
+.mobile-body {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.mobile-body b, .mobile-body strong {
+  font-weight: 700;
+}
+
+.mobile-footer {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Adjust HUD components when card is visible on small screen */
+@media (max-width: 768px) {
+  .mobile-portfolio-card {
+    left: 16px;
+    right: 16px;
+    padding: 16px 20px;
+    bottom: 92px;
+  }
+}

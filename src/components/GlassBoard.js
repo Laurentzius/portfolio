@@ -18,6 +18,7 @@ export class GlassBoard {
     this.texture.minFilter = THREE.LinearMipmapLinearFilter;
     this.texture.generateMipmaps = true;
 
+    this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.opacity = 1.0;
     this.targetOpacity = 1.0;
     this.currentSection = 'welcome';
@@ -188,6 +189,11 @@ export class GlassBoard {
 
   setSuppressed(suppressed) {
     this.suppressed = suppressed;
+    if (this.isMobile) {
+      this.targetScale = 0.0;
+      this.group.visible = false;
+      return;
+    }
     if (suppressed) {
       this.targetScale = 0.0;
       this.group.visible = false;
@@ -198,6 +204,11 @@ export class GlassBoard {
 
   show() {
     if (this.suppressed) return;
+    if (this.isMobile) {
+      this.group.visible = false;
+      this.targetScale = 0.0;
+      return;
+    }
     this.group.visible = true;
     this.targetScale = 1.0;
   }
@@ -222,13 +233,26 @@ export class GlassBoard {
     this.targetOpacity = 0.0;
     this.pendingSection = sectionId;
   }
-
   redrawCanvas() {
     const ctx = this.ctx;
     const w = this.canvas.width;
     const h = this.canvas.height;
     const data = this.portfolioData[this.currentSection];
     if (!data) return;
+
+    // Dispatch a custom event to notify HTML/React HUD of the updated section data
+    window.dispatchEvent(new CustomEvent('portfolio:section-data', {
+      detail: {
+        sectionId: this.currentSection,
+        data: {
+          eyebrow: data.eyebrow,
+          title: data.title,
+          subtitle: data.subtitle,
+          body: data.body,
+          footer: data.footer
+        }
+      }
+    }));
 
     ctx.clearRect(0, 0, w, h);
     ctx.save();
@@ -322,6 +346,11 @@ export class GlassBoard {
   }
 
   update(dt) {
+    if (this.isMobile) {
+      this.group.visible = false;
+      this.group.scale.set(0, 0, 0);
+      return;
+    }
     if (this.lockedHintRendered && performance.now() > this.lockedHintUntil) {
       this.lockedHintRendered = false;
       if (this.currentSection === 'welcome') {
