@@ -53,6 +53,17 @@ export class Experience {
       powerPreference: "high-performance",
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    
+    // Get and log GPU debug info to identify if software rendering is used
+    try {
+      const gl = this.renderer.getContext();
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      const gpuName = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown (Hardware acceleration might be disabled)';
+      console.log(`[Experience] WebGL context initialized. GPU Renderer: ${gpuName}`);
+    } catch (e) {
+      console.warn('[Experience] Failed to query GPU info:', e);
+    }
+
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 2.0 : 3.0));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows

@@ -117,22 +117,38 @@ export class GlassBoard {
     const paddingY = 0.06;
     const glassGeometry = new THREE.PlaneGeometry(BADGE_WIDTH + paddingX, BADGE_HEIGHT + paddingY);
     
-    this.glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#0b0e17'), // Dark slate background matching the design theme
-      transparent: true,
-      opacity: 0.78,
-      transmission: 0.45, // Refractive transparency
-      roughness: 0.45, // Diffuses specular highlights, making them soft and wide
-      metalness: 0.0, // Non-metallic
-      clearcoat: 0.25, // Significantly reduced glossy clearcoat reflection
-      clearcoatRoughness: 0.6, // Blurry clearcoat highlights
-      specularIntensity: 0.2, // Low standard specular reflection intensity
-      ior: 1.5,
-      thickness: 0.03,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      depthTest: false,
-    });
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Fallback to transparent MeshStandardMaterial on mobile to avoid the heavy transmission/refraction pass
+      this.glassMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#0b0e17'),
+        transparent: true,
+        opacity: 0.88,
+        roughness: 0.45,
+        metalness: 0.0,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        depthTest: false,
+      });
+    } else {
+      this.glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#0b0e17'), // Dark slate background matching the design theme
+        transparent: true,
+        opacity: 0.78,
+        transmission: 0.45, // Refractive transparency
+        roughness: 0.45, // Diffuses specular highlights, making them soft and wide
+        metalness: 0.0, // Non-metallic
+        clearcoat: 0.25, // Significantly reduced glossy clearcoat reflection
+        clearcoatRoughness: 0.6, // Blurry clearcoat highlights
+        specularIntensity: 0.2, // Low standard specular reflection intensity
+        ior: 1.5,
+        thickness: 0.03,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        depthTest: false,
+      });
+    }
 
     this.glassMesh = new THREE.Mesh(glassGeometry, this.glassMaterial);
     this.glassMesh.position.z = -0.005; // Slightly behind text

@@ -27,6 +27,26 @@ export const LOOSE_CUBIE_FACES = Object.freeze({
 });
 
 export function createCubieMaterials() {
+  const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    // MeshStandardMaterial is significantly cheaper to render on mobile GPUs than MeshPhysicalMaterial
+    return {
+      bodyMaterial: new THREE.MeshStandardMaterial({
+        color: 0x2d2d2d,
+        metalness: 0.82,
+        roughness: 0.38,
+        envMapIntensity: 0.85,
+      }),
+      tileMaterial: new THREE.MeshStandardMaterial({
+        color: 0x454545,
+        roughness: 0.035,
+        metalness: 0.82,
+        envMapIntensity: 1.45,
+      }),
+    };
+  }
+
   return {
     bodyMaterial: new THREE.MeshPhysicalMaterial({
       color: 0x2d2d2d,
@@ -51,19 +71,24 @@ export function createCubieMaterials() {
 }
 
 export function createCubieGeometries() {
+  const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  // Reduce segment counts from 16 to decrease total triangles in the scene (extremely high vertex count is CPU/GPU intensive)
+  const bodySegments = isMobile ? 5 : 8;
+  const tileSegments = isMobile ? 3 : 6;
+
   return {
     bodyGeometry: new RoundedBoxGeometry(
       CUBIE_VISUAL.size,
       CUBIE_VISUAL.size,
       CUBIE_VISUAL.size,
-      16,
+      bodySegments,
       CUBIE_VISUAL.bevelSize
     ),
     tileGeometry: new RoundedBoxGeometry(
       CUBIE_VISUAL.tileWidth,
       CUBIE_VISUAL.tileHeight,
       CUBIE_VISUAL.tileThickness,
-      16,
+      tileSegments,
       0.02
     ),
   };
