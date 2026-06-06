@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 const SOCIAL_MODELS = Object.freeze([
   {
@@ -63,7 +64,10 @@ const _tmpColor = new THREE.Color();
 export class SocialModels {
   constructor(parent) {
     this.parent = parent;
+    this.dracoLoader = new DRACOLoader();
+    this.dracoLoader.setDecoderPath('/draco/');
     this.loader = new GLTFLoader();
+    this.loader.setDRACOLoader(this.dracoLoader);
     this.group = new THREE.Group();
     this.group.name = 'SocialModels';
     this.items = [];
@@ -251,6 +255,7 @@ export class SocialModels {
       if (child.isMesh && child.geometry) child.geometry.dispose();
     });
     this.disposables.forEach(d => d.dispose());
+    this.dracoLoader.dispose();
     this.items.length = 0;
   }
 }
