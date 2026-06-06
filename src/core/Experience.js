@@ -577,7 +577,10 @@ export class Experience {
       this.interactionManager.destroy();
     }
     if (this.rubiksCube) {
-      // If we added destroy callbacks later
+      this.rubiksCube.destroy();
+    }
+    if (this.glassBoard) {
+      this.glassBoard.destroy();
     }
     if (this.atmosphere) {
       this.atmosphere.destroy();

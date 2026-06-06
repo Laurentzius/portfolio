@@ -5,8 +5,10 @@ export default defineConfig({
   integrations: [react()],
   vite: {
     build: {
-      rollupOptions: {
+      chunkSizeWarningLimit: 600,
+      rolldownOptions: {
         output: {
+          codeSplitting: true,
           manualChunks(id) {
             if (id.includes('node_modules')) {
               if (id.includes('three')) {
@@ -17,9 +19,9 @@ export default defineConfig({
               }
               return 'vendor';
             }
-          }
-        }
-      }
-    }
-  }
+          },
+        },
+      },
+    },
+  },
 });

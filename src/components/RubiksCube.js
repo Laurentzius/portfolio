@@ -1,5 +1,13 @@
 import * as THREE from 'three';
-import { createCubieBody, createCubieGeometries, createCubieMaterials, createCubieTile } from './CubieVisuals.js';
+import { CUBIE_VISUAL, createCubieBody, createCubieGeometries, createCubieMaterials, createCubieTile } from './CubieVisuals.js';
+
+const GAP_GLOW = Object.freeze({
+  gapCenters: Object.freeze([-0.5, 0.5]),
+  cubeExtent: 1 + CUBIE_VISUAL.size / 2,
+  faceSpan: 2 + CUBIE_VISUAL.size,
+  stripWidth: 0.22,
+  surfaceOffset: 0.012,
+});
 
 export class RubiksCube {
   constructor(experience, onMoveCallback) {
@@ -45,11 +53,18 @@ export class RubiksCube {
     this.snapTargetAngle = 0;
     this.snapCurrentAngle = 0;
 
+    this.gapGlowGroup = null;
+    this.gapGlowMaterials = [];
+    this.gapGlowColor = new THREE.Color();
+    this.gapGlowTexture = null;
+    this.gapGlowIntensity = 0.0;
+
     // Materials
     this.initMaterials();
     
     // Create the geometry and cubes
     this.buildCube();
+    this.buildGapGlow();
   }
 
   initMaterials() {
@@ -92,6 +107,138 @@ export class RubiksCube {
       }
     }
 
+  }
+
+  createGapGlowTexture() {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, size, 0);
+    gradient.addColorStop(0.0, 'rgba(255, 255, 255, 0.0)');
+    gradient.addColorStop(0.36, 'rgba(255, 255, 255, 0.18)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(0.64, 'rgba(255, 255, 255, 0.18)');
+    gradient.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  createGapGlowMaterial(baseOpacity) {
+    const material = new THREE.MeshBasicMaterial({
+      map: this.gapGlowTexture,
+      color: 0x7df9ff,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthTest: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+    material.userData.baseOpacity = baseOpacity;
+    this.gapGlowMaterials.push(material);
+    return material;
+  }
+
+  getFaceBasis(normal) {
+    const helper = Math.abs(normal.y) > 0.9
+      ? new THREE.Vector3(0, 0, 1)
+      : new THREE.Vector3(0, 1, 0);
+    const u = new THREE.Vector3().crossVectors(helper, normal).normalize();
+    const v = new THREE.Vector3().crossVectors(normal, u).normalize();
+    return { u, v };
+  }
+
+  setGapPlaneTransform(mesh, localX, localY, localZ, position) {
+    const matrix = new THREE.Matrix4();
+    matrix.makeBasis(localX, localY, localZ);
+    mesh.quaternion.setFromRotationMatrix(matrix);
+    mesh.position.copy(position);
+  }
+
+  addInternalGapPlane(group, normal, offset) {
+    const geometry = new THREE.PlaneGeometry(GAP_GLOW.faceSpan, GAP_GLOW.faceSpan);
+    const mesh = new THREE.Mesh(geometry, this.createGapGlowMaterial(0.018));
+    const { u, v } = this.getFaceBasis(normal);
+    const position = normal.clone().multiplyScalar(offset);
+    this.setGapPlaneTransform(mesh, u, v, normal, position);
+    mesh.renderOrder = 1;
+    group.add(mesh);
+  }
+
+  addSurfaceGapStrip(group, normal, offset, axis) {
+    const geometry = new THREE.PlaneGeometry(GAP_GLOW.stripWidth, GAP_GLOW.faceSpan);
+    const mesh = new THREE.Mesh(geometry, this.createGapGlowMaterial(0.075));
+    const { u, v } = this.getFaceBasis(normal);
+    const base = normal.clone().multiplyScalar(GAP_GLOW.cubeExtent + GAP_GLOW.surfaceOffset);
+
+    if (axis === 'u') {
+      this.setGapPlaneTransform(mesh, u, v, normal, base.add(u.clone().multiplyScalar(offset)));
+    } else {
+      this.setGapPlaneTransform(mesh, v, u.clone().multiplyScalar(-1), normal, base.add(v.clone().multiplyScalar(offset)));
+    }
+    mesh.renderOrder = 8;
+    group.add(mesh);
+  }
+
+  buildGapGlow() {
+    this.gapGlowGroup = new THREE.Group();
+    this.gapGlowGroup.name = 'cube-gap-glow';
+    this.gapGlowTexture = this.createGapGlowTexture();
+
+    const axes = [
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, 0, 1),
+    ];
+    for (const normal of axes) {
+      for (const offset of GAP_GLOW.gapCenters) {
+        this.addInternalGapPlane(this.gapGlowGroup, normal, offset);
+      }
+    }
+
+    const faces = [
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, -1),
+    ];
+    for (const normal of faces) {
+      for (const offset of GAP_GLOW.gapCenters) {
+        this.addSurfaceGapStrip(this.gapGlowGroup, normal, offset, 'u');
+        this.addSurfaceGapStrip(this.gapGlowGroup, normal, offset, 'v');
+      }
+    }
+
+    this.cubeGroup.add(this.gapGlowGroup);
+  }
+
+  updateGapGlow(activeMotion) {
+    if (!this.gapGlowMaterials.length) return;
+
+    const targetIntensity = this.isLocked || activeMotion ? 0.0 : 1.0;
+    const fadeSpeed = targetIntensity > this.gapGlowIntensity ? 0.035 : 0.18;
+    this.gapGlowIntensity = THREE.MathUtils.lerp(this.gapGlowIntensity, targetIntensity, fadeSpeed);
+
+    const colors = this.exp.atmosphere?.current?.colors;
+    if (colors) {
+      this.gapGlowColor.copy(colors[0]).lerp(colors[1], 0.55);
+    } else {
+      this.gapGlowColor.set(0x7df9ff);
+    }
+    for (const material of this.gapGlowMaterials) {
+      material.color.copy(this.gapGlowColor);
+      material.opacity = material.userData.baseOpacity * this.gapGlowIntensity;
+    }
   }
 
   addTile(parent, geometry, faceName) {
@@ -313,6 +460,7 @@ export class RubiksCube {
 
     this.cubeGroup.rotation.x = THREE.MathUtils.lerp(this.cubeGroup.rotation.x, targetX, 0.18);
     this.cubeGroup.rotation.y = THREE.MathUtils.lerp(this.cubeGroup.rotation.y, targetY, 0.18);
+    this.updateGapGlow(activeMotion);
 
     // 1. Process drag inertia
     if (this.isDragging && this.dragStarted) {
@@ -383,6 +531,7 @@ export class RubiksCube {
   roundQuaternion(q) {
     const matrix = new THREE.Matrix4().makeRotationFromQuaternion(q);
     const x = new THREE.Vector3(1, 0, 0).applyMatrix4(matrix).normalize();
+
     const y = new THREE.Vector3(0, 1, 0).applyMatrix4(matrix).normalize();
     const z = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix).normalize();
     
@@ -484,5 +633,23 @@ export class RubiksCube {
     };
 
     requestAnimationFrame(animateStep);
+  }
+
+  destroy() {
+    if (this.gapGlowGroup) {
+      this.cubeGroup.remove(this.gapGlowGroup);
+      this.gapGlowGroup.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+      });
+      this.gapGlowGroup = null;
+    }
+    for (const material of this.gapGlowMaterials) {
+      material.dispose();
+    }
+    this.gapGlowMaterials.length = 0;
+    if (this.gapGlowTexture) {
+      this.gapGlowTexture.dispose();
+      this.gapGlowTexture = null;
+    }
   }
 }

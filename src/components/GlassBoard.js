@@ -31,6 +31,13 @@ export class GlassBoard {
     this.cameraRight = new THREE.Vector3();
     this.cameraUp = new THREE.Vector3();
     this.badgePosition = new THREE.Vector3();
+    this.basePosition = new THREE.Vector3(1.45, 0.72, -4.35);
+    this.floatTime = Math.random() * 10;
+    this.cursorTarget = new THREE.Vector2();
+    this.cursorCurrent = new THREE.Vector2();
+    this.floatOffset = new THREE.Vector3();
+    this.pointerHandler = this.onPointerMove.bind(this);
+    window.addEventListener('pointermove', this.pointerHandler, { passive: true });
 
     this.portfolioData = {
       welcome: {
@@ -170,7 +177,7 @@ export class GlassBoard {
     this.borderLine.renderOrder = 11;
     this.group.add(this.borderLine);
 
-    this.group.position.set(1.45, 0.72, -4.35);
+    this.group.position.copy(this.basePosition);
     this.group.renderOrder = 10;
     this.group.visible = false;
     this.group.scale.set(0, 0, 0);
@@ -345,6 +352,13 @@ export class GlassBoard {
     return currentY;
   }
 
+  onPointerMove(event) {
+    this.cursorTarget.set(
+      (event.clientX / window.innerWidth - 0.5) * 2,
+      -(event.clientY / window.innerHeight - 0.5) * 2
+    );
+  }
+
   update(dt) {
     if (this.isMobile) {
       this.group.visible = false;
@@ -386,5 +400,18 @@ export class GlassBoard {
       }
     }
 
+
+    this.floatTime += dt;
+    this.cursorCurrent.lerp(this.cursorTarget, Math.min(dt * 3.5, 1));
+    this.floatOffset.set(
+      this.cursorCurrent.x * 0.045 + Math.sin(this.floatTime * 0.72) * 0.012,
+      this.cursorCurrent.y * 0.032 + Math.sin(this.floatTime * 0.93 + 1.4) * 0.009,
+      Math.sin(this.floatTime * 0.58 + 0.7) * 0.006
+    );
+    this.group.position.copy(this.basePosition).add(this.floatOffset);
+  }
+
+  destroy() {
+    window.removeEventListener('pointermove', this.pointerHandler);
   }
 }
