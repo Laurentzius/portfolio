@@ -178,6 +178,8 @@ export class Experience {
     // Handle resize
     this.resizeHandler = this.onResize.bind(this);
     window.addEventListener('resize', this.resizeHandler);
+    this.visibilityHandler = this.onVisibilityChange.bind(this);
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 
 
@@ -511,10 +513,28 @@ export class Experience {
       }
     });
   }
+  onVisibilityChange() {
+    if (document.hidden) {
+      this.stopSkillsShuffleTimer();
+      return;
+    }
+    if (this.currentSection === 'skills') {
+      this.startSkillsShuffleTimer();
+    }
+  }
+
   startSkillsShuffleTimer() {
     this.stopSkillsShuffleTimer();
+    if (document.hidden) return;
     this.skillsShuffleTimer = setInterval(() => {
-      if (this.currentSection === 'skills' && this.rubiksCube && !this.rubiksCube.isLocked) {
+      if (
+        this.currentSection === 'skills'
+        && this.rubiksCube
+        && !this.rubiksCube.isLocked
+        && !this.rubiksCube.isAnimating
+        && !this.rubiksCube.isSnapping
+        && this.rubiksCube.animationQueue.length === 0
+      ) {
         const minMoves = 1;
         const maxMoves = 3;
         const numMoves = Math.floor(Math.random() * (maxMoves - minMoves + 1)) + minMoves;
@@ -547,6 +567,7 @@ export class Experience {
     cancelAnimationFrame(this.frameId);
     window.removeEventListener('resize', this.resizeHandler);
     window.removeEventListener('cube-restored', this.onCubeRestored);
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
     window.removeEventListener('portfolio:navigate', this.onPortfolioNavigate);
     if (this.portfolioNav) {
       this.portfolioNav.removeEventListener('click', this.onPortfolioNavClick);

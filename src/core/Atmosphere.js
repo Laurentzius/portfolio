@@ -47,11 +47,17 @@ export class Atmosphere {
     this.time = 0;
     this.streaksTarget = 0.0;
     this.streaksIntensity = 0.0;
-
+    this.particles = null;
+    this.particlesMaterial = null;
+    this.particlesTexture = null;
+    this.particleColorPairs = null;
+    this.particleColorMixes = null;
+    this.particleColor = new THREE.Color();
     this.current = this.cloneTheme(DEFAULT_THEME);
     this.target = this.cloneTheme(DEFAULT_THEME);
 
     this.initShowroom();
+    this.createParticles();
   }
 
   cloneTheme(theme) {
@@ -87,6 +93,87 @@ export class Atmosphere {
     geo.computeVertexNormals();
     return geo;
   }
+  makeParticleTexture() {
+    const size = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext('2d');
+    const center = size / 2;
+    const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+    gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+    gradient.addColorStop(0.22, 'rgba(255, 255, 255, 0.95)');
+    gradient.addColorStop(0.62, 'rgba(255, 255, 255, 0.28)');
+    gradient.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  updateParticleColors() {
+    if (!this.particles || !this.particleColorPairs || !this.particleColorMixes) return;
+
+    const colors = this.particles.geometry.attributes.color;
+    for (let i = 0; i < colors.count; i += 1) {
+      const pairOffset = i * 2;
+      const from = this.current.colors[this.particleColorPairs[pairOffset]];
+      const to = this.current.colors[this.particleColorPairs[pairOffset + 1]];
+      this.particleColor.copy(from).lerp(to, this.particleColorMixes[i]);
+      colors.setXYZ(i, this.particleColor.r, this.particleColor.g, this.particleColor.b);
+    }
+    colors.needsUpdate = true;
+  }
+
+  createParticles() {
+    const count = 760;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    this.particleColorPairs = new Uint8Array(count * 2);
+    this.particleColorMixes = new Float32Array(count);
+
+    for (let i = 0; i < count; i += 1) {
+      const radius = 2.55 + Math.random() * 4.55;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+      const offset = i * 3;
+      const colorOffset = i * 2;
+      const colorA = i % 3;
+
+      positions[offset] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[offset + 1] = radius * Math.cos(phi) * 0.72;
+      positions[offset + 2] = radius * Math.sin(phi) * Math.sin(theta);
+      this.particleColorPairs[colorOffset] = colorA;
+      this.particleColorPairs[colorOffset + 1] = (colorA + 1) % 3;
+      this.particleColorMixes[i] = Math.random();
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    this.particlesTexture = this.makeParticleTexture();
+    this.particlesMaterial = new THREE.PointsMaterial({
+      map: this.particlesTexture,
+      vertexColors: true,
+      size: 0.055,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+
+    this.particles = new THREE.Points(geometry, this.particlesMaterial);
+    this.updateParticleColors();
+    this.scene.add(this.particles);
+  }
+
   initShowroom() {
     // We create two nested cyclorama meshes to introduce true 3D depth and parallax for the Lightfall streaks.
     // 1. Background layer: contains wider and medium streaks (Stream 2 and 3)
@@ -352,6 +439,16 @@ export class Atmosphere {
     updateMaterial(this.materialBg);
     updateMaterial(this.materialFar);
     updateMaterial(this.materialFg);
+
+    if (this.particles) {
+      this.particles.rotation.y = this.time * 0.052;
+      this.particles.rotation.x = Math.sin(this.time * 0.16) * 0.08;
+      this.particles.rotation.z = Math.sin(this.time * 0.1) * 0.025;
+    }
+    if (this.particlesMaterial) {
+      this.updateParticleColors();
+      this.particlesMaterial.opacity = this.streaksIntensity * 0.86;
+    }
   }
   destroy() {
     if (this.meshBg) {
@@ -374,6 +471,16 @@ export class Atmosphere {
     }
     if (this.materialFg) {
       this.materialFg.dispose();
+    }
+    if (this.particles) {
+      this.scene.remove(this.particles);
+      this.particles.geometry.dispose();
+    }
+    if (this.particlesMaterial) {
+      this.particlesMaterial.dispose();
+    }
+    if (this.particlesTexture) {
+      this.particlesTexture.dispose();
     }
   }
 }
