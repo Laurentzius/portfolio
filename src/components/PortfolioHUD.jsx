@@ -43,6 +43,23 @@ export default function PortfolioHUD() {
     };
   }, []);
 
+  const getMinimalText = () => {
+    if (!sectionData) return '';
+    const sectionId = sectionData.sectionId;
+    if (sectionId === 'welcome') {
+      return isRestored
+        ? "HAKON — Creative WebGL Engineer"
+        : "Database Compromised — Tap pieces to restore";
+    }
+    // Map section IDs to minimal one-liners
+    const maps = {
+      about: "ABOUT — Designing tactile interactions",
+      skills: "STACK — WebGL, React, Astro",
+      experience: "WORK — Voxel, Shader, Audio Projects",
+    };
+    return maps[sectionId] || `${sectionData.data.title} — ${sectionData.data.subtitle}`;
+  };
+
   const shouldShowCard = isMobile && sectionData && sectionData.sectionId !== 'contact';
 
   return (
@@ -56,14 +73,7 @@ export default function PortfolioHUD() {
 
       {shouldShowCard && (
         <div className="mobile-portfolio-card">
-          <div className="mobile-eyebrow">{sectionData.data.eyebrow}</div>
-          <h2 className="mobile-title">{sectionData.data.title}</h2>
-          <div className="mobile-subtitle">{sectionData.data.subtitle}</div>
-          <div className="mobile-body-divider" />
-          <p className="mobile-body">
-            {(sectionData.data.body || '').replace(/\\n/g, '\n')}
-          </p>
-          <div className="mobile-footer">{sectionData.data.footer}</div>
+          {getMinimalText()}
         </div>
       )}
 
