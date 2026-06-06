@@ -306,16 +306,13 @@ export class RubiksCube {
   }
 
   update() {
-    const activeMotion = this.isDragging || this.isSnapping || this.isAnimating || this.animationQueue.length > 0;
-    if (!activeMotion) {
-      const t = (performance.now() - this.idleStartedAt) * 0.001;
-      this.cubeGroup.rotation.y = Math.sin(t * 0.45) * 0.018;
-      this.cubeGroup.rotation.x = Math.sin(t * 0.32) * 0.008;
-    } else {
-      this.idleStartedAt = performance.now();
-      this.cubeGroup.rotation.x = THREE.MathUtils.lerp(this.cubeGroup.rotation.x, 0, 0.18);
-      this.cubeGroup.rotation.y = THREE.MathUtils.lerp(this.cubeGroup.rotation.y, 0, 0.18);
-    }
+    const activeMotion = (this.isDragging && this.dragStarted) || this.isSnapping || this.isAnimating || this.animationQueue.length > 0;
+    const t = (performance.now() - this.idleStartedAt) * 0.001;
+    const targetX = activeMotion ? 0 : Math.sin(t * 0.32) * 0.008;
+    const targetY = activeMotion ? 0 : Math.sin(t * 0.45) * 0.018;
+
+    this.cubeGroup.rotation.x = THREE.MathUtils.lerp(this.cubeGroup.rotation.x, targetX, 0.18);
+    this.cubeGroup.rotation.y = THREE.MathUtils.lerp(this.cubeGroup.rotation.y, targetY, 0.18);
 
     // 1. Process drag inertia
     if (this.isDragging && this.dragStarted) {
