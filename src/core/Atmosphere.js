@@ -65,11 +65,12 @@ export class Atmosphere {
   }
 
   createCycloramaGeometry(radiusFloor, cornerRadius) {
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const radiusWall = radiusFloor + cornerRadius;
     const width = 2 * Math.PI * radiusWall;
     const length = 160;
-    const segmentsX = 1920;
-    const segmentsY = 240;
+    const segmentsX = isMobile ? 64 : 128;
+    const segmentsY = 2;
     const geo = new THREE.PlaneGeometry(width, length, segmentsX, segmentsY);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {

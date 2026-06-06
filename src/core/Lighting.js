@@ -5,8 +5,9 @@ export class Lighting {
     this.scene = scene;
     this.renderer = renderer;
 
+    this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.unlockPulseUntil = 0;
-    this.environmentResolution = 512;
+    this.environmentResolution = this.isMobile ? 128 : 512;
     this.initLights();
     this.initEnvironment();
   }
@@ -20,8 +21,8 @@ export class Lighting {
     this.keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
     this.keyLight.position.set(5.5, 8.5, 4.5);
     this.keyLight.castShadow = true;
-    this.keyLight.shadow.mapSize.width = 2048;
-    this.keyLight.shadow.mapSize.height = 2048;
+    this.keyLight.shadow.mapSize.width = this.isMobile ? 1024 : 2048;
+    this.keyLight.shadow.mapSize.height = this.isMobile ? 1024 : 2048;
     this.keyLight.shadow.camera.near = 0.5;
     this.keyLight.shadow.camera.far = 25;
     const d = 4.5;
@@ -229,52 +230,63 @@ export class Lighting {
     this.updateLightEffects(now);
     const cube = experience.rubiksCube;
     const cubeIsTwisting = Boolean(cube?.isDragging || cube?.isSnapping || cube?.isAnimating);
-    this.setEnvironmentResolution(cubeIsTwisting ? 512 : 768);
+    
+    const targetRes = this.isMobile
+      ? (cubeIsTwisting ? 128 : 256)
+      : (cubeIsTwisting ? 512 : 768);
+    this.setEnvironmentResolution(targetRes);
 
-
-    // 1. Hide objects we don't want in the reflection
-    const rubiksGroups = [
-      experience.rubiksCube?.cubeGroup,
-      experience.rubiksCube?.rotationGroup,
-    ].filter(Boolean);
-    const glassGroup = experience.glassBoard?.group;
-    const looseCubies = experience.looseCubies;
-
-    const rubiksVisibilities = [];
-    rubiksGroups.forEach((group, i) => {
-      rubiksVisibilities[i] = group.visible;
-      group.visible = false;
-    });
-
-    let wasGlassVisible = false;
-    if (glassGroup) {
-      wasGlassVisible = glassGroup.visible;
-      glassGroup.visible = false;
+    // Throttle environment updates on mobile to save GPU cycles
+    let shouldUpdate = true;
+    if (this.isMobile) {
+      this.frameCounter = (this.frameCounter || 0) + 1;
+      shouldUpdate = (this.frameCounter % 4 === 0);
     }
 
-    const looseVisibilities = [];
-    if (looseCubies) {
-      looseCubies.forEach((cubie, i) => {
-        looseVisibilities[i] = cubie.group.visible;
-        cubie.group.visible = false;
+    if (shouldUpdate) {
+      // 1. Hide objects we don't want in the reflection
+      const rubiksGroups = [
+        experience.rubiksCube?.cubeGroup,
+        experience.rubiksCube?.rotationGroup,
+      ].filter(Boolean);
+      const glassGroup = experience.glassBoard?.group;
+      const looseCubies = experience.looseCubies;
+
+      const rubiksVisibilities = [];
+      rubiksGroups.forEach((group, i) => {
+        rubiksVisibilities[i] = group.visible;
+        group.visible = false;
       });
-    }
 
-    // 2. Render only the continuous atmosphere into the reflection map.
-    // Discrete studio panels create segmented highlights across separate Rubik's Cube tiles.
-    this.cubeCamera.update(this.renderer, this.scene);
+      let wasGlassVisible = false;
+      if (glassGroup) {
+        wasGlassVisible = glassGroup.visible;
+        glassGroup.visible = false;
+      }
 
-    // 3. Keep studio reflection helpers hidden from the main camera too.
-    rubiksGroups.forEach((group, i) => {
-      group.visible = rubiksVisibilities[i];
-    });
-    if (glassGroup) {
-      glassGroup.visible = wasGlassVisible;
-    }
-    if (looseCubies) {
-      looseCubies.forEach((cubie, i) => {
-        cubie.group.visible = looseVisibilities[i];
+      const looseVisibilities = [];
+      if (looseCubies) {
+        looseCubies.forEach((cubie, i) => {
+          looseVisibilities[i] = cubie.group.visible;
+          cubie.group.visible = false;
+        });
+      }
+
+      // 2. Render only the continuous atmosphere into the reflection map.
+      this.cubeCamera.update(this.renderer, this.scene);
+
+      // 3. Keep studio reflection helpers hidden from the main camera too.
+      rubiksGroups.forEach((group, i) => {
+        group.visible = rubiksVisibilities[i];
       });
+      if (glassGroup) {
+        glassGroup.visible = wasGlassVisible;
+      }
+      if (looseCubies) {
+        looseCubies.forEach((cubie, i) => {
+          cubie.group.visible = looseVisibilities[i];
+        });
+      }
     }
   }
 

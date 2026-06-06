@@ -36,6 +36,8 @@ export class Experience {
   }
 
   initCore() {
+    this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     // 1. Scene
     this.scene = new THREE.Scene();
 
@@ -51,7 +53,7 @@ export class Experience {
       powerPreference: "high-performance",
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 2.0 : 3.0));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // Cinematic tones
