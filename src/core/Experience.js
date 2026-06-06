@@ -183,6 +183,12 @@ export class Experience {
   }
 
   navigateTo(sectionId) {
+    if (this.currentSection === sectionId) return;
+    this.currentSection = sectionId;
+
+    if (this.glassBoard) {
+      this.glassBoard.setSuppressed(sectionId === 'contact');
+    }
     this.navigation.showSection(sectionId);
     if (this.lighting) {
       this.lighting.setSectionAccent(sectionId);
@@ -192,9 +198,6 @@ export class Experience {
     }
     if (this.socialModels) {
       this.socialModels.setVisible(sectionId === 'contact');
-    }
-    if (this.glassBoard) {
-      this.glassBoard.setSuppressed(sectionId === 'contact');
     }
     if (SECTION_CAMERA_POSES[sectionId]) {
       this.animateCameraToSection(sectionId);
