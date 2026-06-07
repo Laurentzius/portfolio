@@ -312,7 +312,7 @@ export class RubiksCube {
       this.clickedCubie = this.clickedTile.parent;
       
       // Get normal in world coords
-      const localNormal = tileIntersect.face.normal.clone();
+      const localNormal = new THREE.Vector3(0, 0, 1);
       const normalMatrix = new THREE.Matrix3().getNormalMatrix(this.clickedTile.matrixWorld);
       this.clickedNormal.copy(localNormal).applyMatrix3(normalMatrix).normalize();
       
@@ -335,7 +335,12 @@ export class RubiksCube {
     const dragVector = this.mouseCurrent.clone().sub(this.mouseStart);
     
     if (!this.dragStarted) {
-      if (dragVector.length() > 0.03) {
+      const rect = this.domElement.getBoundingClientRect();
+      const dragPixels = new THREE.Vector2(
+        dragVector.x * rect.width * 0.5,
+        dragVector.y * rect.height * 0.5
+      );
+      if (dragPixels.length() > 25) {
         this.selectSliceRotation(dragVector);
       }
     } else {
