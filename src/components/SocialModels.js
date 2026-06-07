@@ -62,8 +62,9 @@ const _baseColor = new THREE.Color(0x111111); // Very dark chrome base color to 
 const _tmpColor = new THREE.Color();
 
 export class SocialModels {
-  constructor(parent) {
-    this.parent = parent;
+  constructor(experience) {
+    this.exp = experience;
+    this.parent = experience.scene;
     this.dracoLoader = new DRACOLoader();
     this.dracoLoader.setDecoderPath('/draco/');
     this.loader = new GLTFLoader();
@@ -122,6 +123,17 @@ export class SocialModels {
       hoverT: 0,
       isHovered: false,
     });
+
+    if (this.items.length === SOCIAL_MODELS.length) {
+      if (this.exp && this.exp.renderer && this.exp.camera) {
+        if (typeof this.exp.renderer.compileAsync === 'function') {
+          this.exp.renderer.compileAsync(this.group, this.exp.camera)
+            .catch(err => console.warn('Asynchronous compilation of social models failed', err));
+        } else {
+          this.exp.renderer.compile(this.group, this.exp.camera);
+        }
+      }
+    }
   }
 
   normalizeModel(model) {

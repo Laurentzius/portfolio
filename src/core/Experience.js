@@ -145,7 +145,7 @@ export class Experience {
     this.navigation = new PortfolioNavigation(this.glassBoard, this.audioEngine);
     this.physics = new LooseCubiePhysics();
     this.repairNarrative = new RepairNarrative(this.scene, this.rubiksCube, this.glassBoard);
-    this.socialModels = new SocialModels(this.scene);
+    this.socialModels = new SocialModels(this);
     this.repair = new CubieRepair({
       rubiksCube: this.rubiksCube,
       looseCubies: this.looseCubies,
