@@ -7,7 +7,7 @@ export class Lighting {
 
     this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.unlockPulseUntil = 0;
-    this.environmentResolution = this.isMobile ? 128 : 512;
+    this.environmentResolution = this.isMobile ? 128 : 1024;
     this.initLights();
     this.initEnvironment();
   }
@@ -233,7 +233,7 @@ export class Lighting {
     
     const targetRes = this.isMobile
       ? (cubeIsTwisting ? 128 : 256)
-      : (cubeIsTwisting ? 512 : 768);
+      : 1024;
     this.setEnvironmentResolution(targetRes);
 
     // Throttle environment updates on mobile to save GPU cycles
