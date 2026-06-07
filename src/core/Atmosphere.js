@@ -130,14 +130,17 @@ export class Atmosphere {
   }
 
   createParticles() {
-    const count = 760;
+    const count = 1500;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     this.particleColorPairs = new Uint8Array(count * 2);
     this.particleColorMixes = new Float32Array(count);
 
     for (let i = 0; i < count; i += 1) {
-      const radius = 2.55 + Math.random() * 4.55;
+      const outerLayer = i >= 760;
+      const radius = outerLayer
+        ? 6.0 + Math.random() * 8.5
+        : 2.55 + Math.random() * 4.55;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
       const offset = i * 3;
@@ -145,7 +148,7 @@ export class Atmosphere {
       const colorA = i % 3;
 
       positions[offset] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[offset + 1] = radius * Math.cos(phi) * 0.72;
+      positions[offset + 1] = radius * Math.cos(phi) * (outerLayer ? 0.95 : 0.72);
       positions[offset + 2] = radius * Math.sin(phi) * Math.sin(theta);
       this.particleColorPairs[colorOffset] = colorA;
       this.particleColorPairs[colorOffset + 1] = (colorA + 1) % 3;
@@ -160,7 +163,7 @@ export class Atmosphere {
     this.particlesMaterial = new THREE.PointsMaterial({
       map: this.particlesTexture,
       vertexColors: true,
-      size: 0.055,
+      size: 0.045,
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.0,
