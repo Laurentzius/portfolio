@@ -230,6 +230,9 @@ export class Experience {
     }
     if (this.socialModels) {
       this.socialModels.setVisible(sectionId === 'contact');
+      if (sectionId === 'contact') {
+        this.lighting?.captureSocialEnvironment(this);
+      }
     }
     const isSkills = sectionId === 'skills';
     gsap.to(this, {

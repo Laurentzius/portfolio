@@ -68,6 +68,7 @@ export class PlanarReflections {
   update(experience) {
     const hidden = [];
     this.hide(experience.rubiksCube?.visualGroup, hidden);
+    this.hide(experience.socialModels?.group, hidden);
     if (experience.looseCubies) {
       for (const cubie of experience.looseCubies) {
         this.hide(cubie.group ?? cubie.mesh ?? cubie, hidden);

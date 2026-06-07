@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { applySharpMirrorCoat } from './CubieVisuals.js';
 
 const SOCIAL_MODELS = Object.freeze([
   {
@@ -49,7 +50,7 @@ const FLOAT_TILT_SPEED = 0.7;
 
 // Hover animation
 const HOVER_LERP_SPEED = 6.0;
-const BASE_EMISSIVE_INTENSITY = 0.0; // Totally dark base (no glow)
+const BASE_EMISSIVE_INTENSITY = 0.0; // Idle icons stay chrome-dark; planar reflections provide readability
 const HOVER_EMISSIVE_INTENSITY = 2.2; // Vibrant glow on hover
 const HOVER_SCALE = 1.16;
 const HOVER_LIGHT_INTENSITY = 10.0;
@@ -59,6 +60,8 @@ const HOVER_LIGHT_DISTANCE = 4.5;
 const GROUP_FADE_SPEED = 3.0;
 
 const _baseColor = new THREE.Color(0x111111); // Very dark chrome base color to blend into the composition
+const _baseEmissive = new THREE.Color(0x000000);
+const _tmpEmissive = new THREE.Color();
 const _tmpColor = new THREE.Color();
 
 export class SocialModels {
@@ -157,13 +160,18 @@ export class SocialModels {
         // but lets emissive shine beautifully on top without clearcoat shading bugs.
         const mat = new THREE.MeshStandardMaterial({
           color: 0x111111,
-          emissive: config.glowColor.clone(),
+          emissive: _baseEmissive.clone(),
           emissiveIntensity: 0.0,
           roughness: 0.1,
           metalness: 0.95,
           envMapIntensity: 4.0,
           toneMapped: true,
+          envMap: this.exp.lighting?.cubeRenderTarget?.texture ?? null,
         });
+        const planarUniforms = this.exp.planarReflections?.uniforms;
+        if (planarUniforms) {
+          applySharpMirrorCoat(mat, planarUniforms, 1.4);
+        }
         out.push(mat);
         this.disposables.push(mat);
         return mat;
@@ -247,12 +255,12 @@ export class SocialModels {
       root.scale.setScalar((1.0 + (HOVER_SCALE - 1.0) * t) * op);
 
       // Material: color tints, emissive intensity ramps up
-      const ei = t * HOVER_EMISSIVE_INTENSITY;
+      const ei = BASE_EMISSIVE_INTENSITY + t * (HOVER_EMISSIVE_INTENSITY - BASE_EMISSIVE_INTENSITY);
       _tmpColor.copy(_baseColor).lerp(config.glowColor, t * 0.15);
 
       for (const mat of item.materials) {
         mat.color.copy(_tmpColor);
-        mat.emissive.copy(config.glowColor);
+        mat.emissive.copy(_tmpEmissive.copy(_baseEmissive).lerp(config.glowColor, t));
         mat.emissiveIntensity = ei * op;
       }
 

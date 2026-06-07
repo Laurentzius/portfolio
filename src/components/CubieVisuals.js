@@ -55,21 +55,21 @@ uniform float uPlanarReflectionStrength;`
           vec4 planarCoord = vec4( 0.0 );
           vec3 planarColor = vec3( 0.0 );
           float planarWeight = 0.0;
-          if ( planarNormal.x > 0.35 && planarAbsNormal.x >= planarAbsNormal.y && planarAbsNormal.x >= planarAbsNormal.z ) {
+          if ( planarAbsNormal.x >= planarAbsNormal.y && planarAbsNormal.x >= planarAbsNormal.z ) {
             planarCoord = uPlanarReflectionMatrixRight * vec4( vPlanarWorldPosition, 1.0 );
             vec3 planarUv = planarCoord.xyz / planarCoord.w;
             if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
               planarColor = texture2D( uPlanarReflectionRight, planarUv.xy ).rgb;
               planarWeight = planarAbsNormal.x;
             }
-          } else if ( planarNormal.y > 0.35 && planarAbsNormal.y >= planarAbsNormal.x && planarAbsNormal.y >= planarAbsNormal.z ) {
+          } else if ( planarAbsNormal.y >= planarAbsNormal.x && planarAbsNormal.y >= planarAbsNormal.z ) {
             planarCoord = uPlanarReflectionMatrixTop * vec4( vPlanarWorldPosition, 1.0 );
             vec3 planarUv = planarCoord.xyz / planarCoord.w;
             if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
               planarColor = texture2D( uPlanarReflectionTop, planarUv.xy ).rgb;
               planarWeight = planarAbsNormal.y;
             }
-          } else if ( planarNormal.z > 0.35 && planarAbsNormal.z >= planarAbsNormal.x && planarAbsNormal.z >= planarAbsNormal.y ) {
+          } else if ( planarAbsNormal.z >= planarAbsNormal.x && planarAbsNormal.z >= planarAbsNormal.y ) {
             planarCoord = uPlanarReflectionMatrixFront * vec4( vPlanarWorldPosition, 1.0 );
             vec3 planarUv = planarCoord.xyz / planarCoord.w;
             if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {

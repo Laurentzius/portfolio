@@ -223,6 +223,33 @@ export class Lighting {
     }
   }
 
+  captureSocialEnvironment(experience) {
+    if (!this.cubeCamera || !this.renderer) return;
+    this.setEnvironmentResolution(this.isMobile ? 256 : 768);
+
+    const hidden = [];
+    const hide = (object) => {
+      if (!object || object.visible === false) return;
+      object.visible = false;
+      hidden.push(object);
+    };
+
+    hide(experience.rubiksCube?.cubeGroup);
+    hide(experience.rubiksCube?.rotationGroup);
+    hide(experience.glassBoard?.group);
+    hide(experience.socialModels?.group);
+    if (experience.looseCubies) {
+      for (const cubie of experience.looseCubies) hide(cubie.group);
+    }
+
+    const wasStudioVisible = this.studioLightsGroup.visible;
+    this.studioLightsGroup.visible = true;
+    this.cubeCamera.update(this.renderer, this.scene);
+    this.studioLightsGroup.visible = wasStudioVisible;
+
+    for (let i = 0; i < hidden.length; i++) hidden[i].visible = true;
+  }
+
   update() {
     this.updateLightEffects(performance.now());
   }
