@@ -13,7 +13,7 @@ const THEMES = Object.freeze({
     background: new THREE.Color('#030712'),
     glowColor: new THREE.Color('#111318'),
     glowIntensity: 0.58,
-    speed: 0.58,
+    speed: 0.34,
   },
   skills: {
     colors: [new THREE.Color('#7df9ff'), new THREE.Color('#5227ff'), new THREE.Color('#a6c8ff')],
