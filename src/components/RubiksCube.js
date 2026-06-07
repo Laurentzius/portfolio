@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CUBIE_VISUAL, applySharpMirrorCoat, createCubieBody, createCubieGeometries, createCubieMaterials, createCubieTile } from './CubieVisuals.js';
+import { CUBIE_VISUAL, createCubieBody, createCubieGeometries, createCubieMaterials, createCubieTile } from './CubieVisuals.js';
 
 const GAP_GLOW = Object.freeze({
   gapCenters: Object.freeze([-0.5, 0.5]),
@@ -65,7 +65,6 @@ export class RubiksCube {
     this.gapGlowColor = new THREE.Color();
     this.gapGlowTexture = null;
     this.gapGlowIntensity = 0.0;
-    this.planarReflectionUniforms = null;
 
     // Materials
     this.initMaterials();
@@ -77,11 +76,6 @@ export class RubiksCube {
 
   initMaterials() {
     const materials = createCubieMaterials();
-    this.planarReflectionUniforms = this.exp.planarReflections?.uniforms ?? null;
-    if (this.planarReflectionUniforms) {
-      applySharpMirrorCoat(materials.bodyMaterial, this.planarReflectionUniforms, 0.9);
-      applySharpMirrorCoat(materials.tileMaterial, this.planarReflectionUniforms, 1.0);
-    }
     this.bodyMaterial = materials.bodyMaterial;
     this.tileMaterial = materials.tileMaterial;
   }
@@ -255,11 +249,7 @@ export class RubiksCube {
   }
 
   addTile(parent, geometry, faceName) {
-    const tileMaterial = this.tileMaterial.clone();
-    if (this.planarReflectionUniforms) {
-      applySharpMirrorCoat(tileMaterial, this.planarReflectionUniforms, 1.0);
-    }
-    const tileMesh = createCubieTile(geometry, tileMaterial, faceName, {
+    const tileMesh = createCubieTile(geometry, this.tileMaterial.clone(), faceName, {
       isTile: true,
       faceName: faceName,
     });

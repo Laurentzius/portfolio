@@ -26,98 +26,6 @@ export const LOOSE_CUBIE_FACES = Object.freeze({
   center: Object.freeze(['F']),
 });
 
-export function applySharpMirrorCoat(material, planarUniforms, strength) {
-  material.userData.sharpMirrorStrength = strength;
-  material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, planarUniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vPlanarWorldPosition;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvPlanarWorldPosition = worldPosition.xyz;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-varying vec3 vPlanarWorldPosition;
-uniform sampler2D uPlanarReflectionRight;
-uniform sampler2D uPlanarReflectionLeft;
-uniform sampler2D uPlanarReflectionTop;
-uniform sampler2D uPlanarReflectionBottom;
-uniform sampler2D uPlanarReflectionFront;
-uniform sampler2D uPlanarReflectionBack;
-uniform mat4 uPlanarReflectionMatrixRight;
-uniform mat4 uPlanarReflectionMatrixLeft;
-uniform mat4 uPlanarReflectionMatrixTop;
-uniform mat4 uPlanarReflectionMatrixBottom;
-uniform mat4 uPlanarReflectionMatrixFront;
-uniform mat4 uPlanarReflectionMatrixBack;
-uniform float uPlanarReflectionStrength;`
-      )
-      .replace(
-        'vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;',
-        `
-          vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;
-          vec3 planarNormal = inverseTransformDirection( normal, viewMatrix );
-          vec3 planarAbsNormal = abs( planarNormal );
-          vec4 planarCoord = vec4( 0.0 );
-          vec3 planarColor = vec3( 0.0 );
-          float planarWeight = 0.0;
-          if ( planarAbsNormal.x >= planarAbsNormal.y && planarAbsNormal.x >= planarAbsNormal.z ) {
-            if ( planarNormal.x >= 0.0 ) {
-              planarCoord = uPlanarReflectionMatrixRight * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionRight, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.x;
-              }
-            } else {
-              planarCoord = uPlanarReflectionMatrixLeft * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionLeft, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.x;
-              }
-            }
-          } else if ( planarAbsNormal.y >= planarAbsNormal.x && planarAbsNormal.y >= planarAbsNormal.z ) {
-            if ( planarNormal.y >= 0.0 ) {
-              planarCoord = uPlanarReflectionMatrixTop * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionTop, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.y;
-              }
-            } else {
-              planarCoord = uPlanarReflectionMatrixBottom * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionBottom, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.y;
-              }
-            }
-          } else if ( planarAbsNormal.z >= planarAbsNormal.x && planarAbsNormal.z >= planarAbsNormal.y ) {
-            if ( planarNormal.z >= 0.0 ) {
-              planarCoord = uPlanarReflectionMatrixFront * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionFront, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.z;
-              }
-            } else {
-              planarCoord = uPlanarReflectionMatrixBack * vec4( vPlanarWorldPosition, 1.0 );
-              vec3 planarUv = planarCoord.xyz / planarCoord.w;
-              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-                planarColor = texture2D( uPlanarReflectionBack, planarUv.xy ).rgb;
-                planarWeight = planarAbsNormal.z;
-              }
-            }
-          }
-          outgoingLight = mix( outgoingLight, max( outgoingLight, planarColor * 1.35 ), planarWeight * uPlanarReflectionStrength * ${strength.toFixed(2)} );
-        `
-      );
-  };
-  material.customProgramCacheKey = () => `planar-mirror-${strength}`;
-  material.needsUpdate = true;
-}
-
 export function createCubieMaterials() {
   const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -126,15 +34,15 @@ export function createCubieMaterials() {
     return {
       bodyMaterial: new THREE.MeshStandardMaterial({
         color: 0x2d2d2d,
-        metalness: 0.9,
-        roughness: 0.04,
-        envMapIntensity: 1.65,
+        metalness: 0.82,
+        roughness: 0.38,
+        envMapIntensity: 0.85,
       }),
       tileMaterial: new THREE.MeshStandardMaterial({
         color: 0x454545,
-        roughness: 0.0,
-        metalness: 0.92,
-        envMapIntensity: 2.1,
+        roughness: 0.035,
+        metalness: 0.82,
+        envMapIntensity: 1.45,
       }),
     };
   }
@@ -142,11 +50,11 @@ export function createCubieMaterials() {
   return {
     bodyMaterial: new THREE.MeshPhysicalMaterial({
       color: 0x1b1b1b,
-      metalness: 0.92,
-      roughness: 0.01,
+      metalness: 0.9,
+      roughness: 0.1,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.0,
-      envMapIntensity: 2.6,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 1.5,
     }),
     tileMaterial: new THREE.MeshPhysicalMaterial({
       color: 0xcccccc,
@@ -157,7 +65,7 @@ export function createCubieMaterials() {
       transmission: 0.0,
       ior: 2.0,
       specularIntensity: 1.0,
-      envMapIntensity: 3.0,
+      envMapIntensity: 2.2,
     }),
   };
 }

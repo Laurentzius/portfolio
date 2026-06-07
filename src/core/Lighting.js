@@ -7,7 +7,7 @@ export class Lighting {
 
     this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.unlockPulseUntil = 0;
-    this.environmentResolution = this.isMobile ? 256 : 2048;
+    this.environmentResolution = this.isMobile ? 128 : 1024;
     this.initLights();
     this.initEnvironment();
   }
@@ -171,7 +171,7 @@ export class Lighting {
     this.studioLightsGroup.visible = false; // Hide from main render pass
     this.scene.add(this.studioLightsGroup);
 
-    // Dynamic cubemap: high resolution keeps the chrome reflections mirror-sharp enough to show atmosphere particles and light lines.
+    // Dynamic cubemap updates every frame; adaptive resolution keeps twists smooth and idle reflections crisp.
     this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(this.environmentResolution, {
       generateMipmaps: false,
       minFilter: THREE.LinearFilter,
@@ -184,8 +184,8 @@ export class Lighting {
     this.cubeCamera = new THREE.CubeCamera(0.1, 50.0, this.cubeRenderTarget);
     this.scene.add(this.cubeCamera);
 
-    // Planar reflection experiment branch: disable default scene environment so cube faces use only planar mirrors.
-    this.scene.environment = null;
+    // Assign the dynamic CubeTexture as the scene environment
+    this.scene.environment = this.cubeRenderTarget.texture;
 
     this.geometriesToDispose = [stripGeo, squareGeo];
     this.materialsToDispose = [stripMat, squareMat];
@@ -223,35 +223,71 @@ export class Lighting {
     }
   }
 
-  captureSocialEnvironment(experience) {
+  update(experience) {
     if (!this.cubeCamera || !this.renderer) return;
-    this.setEnvironmentResolution(this.isMobile ? 256 : 768);
 
-    const hidden = [];
-    const hide = (object) => {
-      if (!object || object.visible === false) return;
-      object.visible = false;
-      hidden.push(object);
-    };
+    const now = performance.now();
+    this.updateLightEffects(now);
+    const cube = experience.rubiksCube;
+    const cubeIsTwisting = Boolean(cube?.isDragging || cube?.isSnapping || cube?.isAnimating);
+    
+    const targetRes = this.isMobile
+      ? (cubeIsTwisting ? 128 : 256)
+      : 1024;
+    this.setEnvironmentResolution(targetRes);
 
-    hide(experience.rubiksCube?.cubeGroup);
-    hide(experience.rubiksCube?.rotationGroup);
-    hide(experience.glassBoard?.group);
-    hide(experience.socialModels?.group);
-    if (experience.looseCubies) {
-      for (const cubie of experience.looseCubies) hide(cubie.group);
+    // Throttle environment updates on mobile to save GPU cycles
+    let shouldUpdate = true;
+    if (this.isMobile) {
+      this.frameCounter = (this.frameCounter || 0) + 1;
+      shouldUpdate = (this.frameCounter % 4 === 0);
     }
 
-    const wasStudioVisible = this.studioLightsGroup.visible;
-    this.studioLightsGroup.visible = true;
-    this.cubeCamera.update(this.renderer, this.scene);
-    this.studioLightsGroup.visible = wasStudioVisible;
+    if (shouldUpdate) {
+      // 1. Hide objects we don't want in the reflection
+      const rubiksGroups = [
+        experience.rubiksCube?.cubeGroup,
+        experience.rubiksCube?.rotationGroup,
+      ].filter(Boolean);
+      const glassGroup = experience.glassBoard?.group;
+      const looseCubies = experience.looseCubies;
 
-    for (let i = 0; i < hidden.length; i++) hidden[i].visible = true;
-  }
+      const rubiksVisibilities = [];
+      rubiksGroups.forEach((group, i) => {
+        rubiksVisibilities[i] = group.visible;
+        group.visible = false;
+      });
 
-  update() {
-    this.updateLightEffects(performance.now());
+      let wasGlassVisible = false;
+      if (glassGroup) {
+        wasGlassVisible = glassGroup.visible;
+        glassGroup.visible = false;
+      }
+
+      const looseVisibilities = [];
+      if (looseCubies) {
+        looseCubies.forEach((cubie, i) => {
+          looseVisibilities[i] = cubie.group.visible;
+          cubie.group.visible = false;
+        });
+      }
+
+      // 2. Render only the continuous atmosphere into the reflection map.
+      this.cubeCamera.update(this.renderer, this.scene);
+
+      // 3. Keep studio reflection helpers hidden from the main camera too.
+      rubiksGroups.forEach((group, i) => {
+        group.visible = rubiksVisibilities[i];
+      });
+      if (glassGroup) {
+        glassGroup.visible = wasGlassVisible;
+      }
+      if (looseCubies) {
+        looseCubies.forEach((cubie, i) => {
+          cubie.group.visible = looseVisibilities[i];
+        });
+      }
+    }
   }
 
   destroy() {
