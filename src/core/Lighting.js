@@ -233,7 +233,7 @@ export class Lighting {
     
     const targetRes = this.isMobile
       ? (cubeIsTwisting ? 128 : 256)
-      : 1024;
+      : 2048;
     this.setEnvironmentResolution(targetRes);
 
     // Throttle environment updates on mobile to save GPU cycles
@@ -273,7 +273,12 @@ export class Lighting {
       }
 
       // 2. Render only the continuous atmosphere into the reflection map.
-      this.cubeCamera.update(this.renderer, this.scene);
+      experience.atmosphere?.beginReflectionCapture?.();
+      try {
+        this.cubeCamera.update(this.renderer, this.scene);
+      } finally {
+        experience.atmosphere?.endReflectionCapture?.();
+      }
 
       // 3. Keep studio reflection helpers hidden from the main camera too.
       rubiksGroups.forEach((group, i) => {

@@ -395,6 +395,51 @@ export class Atmosphere {
     this.streaksTarget = 1.0;
   }
 
+  beginReflectionCapture() {
+    if (this.reflectionCaptureState) return;
+    this.reflectionCaptureState = {
+      particleSize: this.particlesMaterial?.size,
+      particleOpacity: this.particlesMaterial?.opacity,
+      bgIntensity: this.materialBg?.uniforms?.uStreaksIntensity?.value,
+      farIntensity: this.materialFar?.uniforms?.uStreaksIntensity?.value,
+      fgIntensity: this.materialFg?.uniforms?.uStreaksIntensity?.value,
+    };
+
+    if (this.particlesMaterial) {
+      this.particlesMaterial.size *= 0.55;
+      this.particlesMaterial.opacity *= 0.72;
+    }
+    if (this.materialBg?.uniforms?.uStreaksIntensity) {
+      this.materialBg.uniforms.uStreaksIntensity.value *= 0.78;
+    }
+    if (this.materialFar?.uniforms?.uStreaksIntensity) {
+      this.materialFar.uniforms.uStreaksIntensity.value *= 0.72;
+    }
+    if (this.materialFg?.uniforms?.uStreaksIntensity) {
+      this.materialFg.uniforms.uStreaksIntensity.value *= 0.82;
+    }
+  }
+
+  endReflectionCapture() {
+    const state = this.reflectionCaptureState;
+    if (!state) return;
+
+    if (this.particlesMaterial) {
+      this.particlesMaterial.size = state.particleSize;
+      this.particlesMaterial.opacity = state.particleOpacity;
+    }
+    if (this.materialBg?.uniforms?.uStreaksIntensity) {
+      this.materialBg.uniforms.uStreaksIntensity.value = state.bgIntensity;
+    }
+    if (this.materialFar?.uniforms?.uStreaksIntensity) {
+      this.materialFar.uniforms.uStreaksIntensity.value = state.farIntensity;
+    }
+    if (this.materialFg?.uniforms?.uStreaksIntensity) {
+      this.materialFg.uniforms.uStreaksIntensity.value = state.fgIntensity;
+    }
+    this.reflectionCaptureState = null;
+  }
+
 
   update(dt) {
     this.time += dt;

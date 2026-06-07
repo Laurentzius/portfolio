@@ -51,9 +51,9 @@ export function createCubieMaterials() {
     bodyMaterial: new THREE.MeshPhysicalMaterial({
       color: 0x1b1b1b,
       metalness: 0.9,
-      roughness: 0.1,
+      roughness: 0.02,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
+      clearcoatRoughness: 0.0,
       envMapIntensity: 1.5,
     }),
     tileMaterial: new THREE.MeshPhysicalMaterial({
