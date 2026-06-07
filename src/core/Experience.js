@@ -337,7 +337,7 @@ export class Experience {
 
       // Update cube rotation snapping / queue animations
       if (this.rubiksCube) {
-        this.rubiksCube.update();
+        this.rubiksCube.update(dt);
       }
       this.updateLogosProjection();
 

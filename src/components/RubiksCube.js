@@ -9,6 +9,10 @@ const GAP_GLOW = Object.freeze({
   surfaceOffset: 0.012,
 });
 
+const DRAG_ROTATION_SENSITIVITY = 0.78;
+const DRAG_FOLLOW_SPEED = 7.0;
+const SNAP_FOLLOW_SPEED = 6.2;
+
 export class RubiksCube {
   constructor(experience, onMoveCallback) {
     this.exp = experience;
@@ -18,8 +22,11 @@ export class RubiksCube {
     this.audioEngine = experience.audioEngine;
     this.onMoveCallback = onMoveCallback;
 
+    this.visualGroup = new THREE.Group();
+    this.scene.add(this.visualGroup);
+
     this.cubeGroup = new THREE.Group();
-    this.scene.add(this.cubeGroup);
+    this.visualGroup.add(this.cubeGroup);
 
     this.cubies = [];
     this.tiles = [];
@@ -35,12 +42,13 @@ export class RubiksCube {
     this.clickedNormal = new THREE.Vector3();
     this.mouseStart = new THREE.Vector2();
     this.mouseCurrent = new THREE.Vector2();
+    this.mouseDragStart = new THREE.Vector2();
     
     // Slice rotation state
     this.activeRotationAxis = null; // THREE.Vector3
     this.activeSliceCoord = 0;      // -1, 0, or 1
     this.rotationGroup = new THREE.Group();
-    this.scene.add(this.rotationGroup);
+    this.visualGroup.add(this.rotationGroup);
     
     this.isAnimating = false;
     this.animationQueue = [];
@@ -333,12 +341,13 @@ export class RubiksCube {
 
     const axisU = possibleAxes[0];
     const axisV = possibleAxes[1];
-
-    const centerWorld = this.clickedCubie.position.clone();
+    const centerWorld = this.clickedCubie.getWorldPosition(new THREE.Vector3());
+    const axisUWorld = axisU.clone().transformDirection(this.visualGroup.matrixWorld);
+    const axisVWorld = axisV.clone().transformDirection(this.visualGroup.matrixWorld);
     
     const screenCenter = this.projectWorldToScreen(centerWorld);
-    const screenU_NDC = this.projectWorldToScreen(centerWorld.clone().add(axisU)).sub(screenCenter);
-    const screenV_NDC = this.projectWorldToScreen(centerWorld.clone().add(axisV)).sub(screenCenter);
+    const screenU_NDC = this.projectWorldToScreen(centerWorld.clone().add(axisUWorld)).sub(screenCenter);
+    const screenV_NDC = this.projectWorldToScreen(centerWorld.clone().add(axisVWorld)).sub(screenCenter);
 
     const rect = this.domElement.getBoundingClientRect();
     const aspect = rect.width / rect.height;
@@ -377,6 +386,7 @@ export class RubiksCube {
     }
 
     this.groupSliceCubies();
+    this.mouseDragStart.copy(this.mouseCurrent);
     this.dragTargetAngle = 0;
     this.dragCurrentAngle = 0;
     this.dragStarted = true;
@@ -407,12 +417,12 @@ export class RubiksCube {
     const aspect = rect.width / rect.height;
     
     const dragVector = new THREE.Vector2(
-      (this.mouseCurrent.x - this.mouseStart.x) * aspect,
-      (this.mouseCurrent.y - this.mouseStart.y)
+      (this.mouseCurrent.x - this.mouseDragStart.x) * aspect,
+      (this.mouseCurrent.y - this.mouseDragStart.y)
     );
     
     const projection = dragVector.dot(this.winningScreenAxisPx);
-    this.dragTargetAngle = projection * Math.PI * 0.9; 
+    this.dragTargetAngle = projection * Math.PI * DRAG_ROTATION_SENSITIVITY;
   }
 
   setRotationGroupAngle(angle) {
@@ -444,6 +454,7 @@ export class RubiksCube {
     this.clickedCubie = null;
     this.clickedTile = null;
     this.activeRotationAxis = null;
+    this.mouseDragStart.set(0, 0);
     this.dragStarted = false;
   }
 
@@ -452,25 +463,27 @@ export class RubiksCube {
     return new THREE.Vector2(pos.x, pos.y);
   }
 
-  update() {
+  update(dt = 1 / 60) {
     const activeMotion = (this.isDragging && this.dragStarted) || this.isSnapping || this.isAnimating || this.animationQueue.length > 0;
     const t = (performance.now() - this.idleStartedAt) * 0.001;
-    const targetX = activeMotion ? 0 : Math.sin(t * 0.32) * 0.008;
-    const targetY = activeMotion ? 0 : Math.sin(t * 0.45) * 0.018;
 
-    this.cubeGroup.rotation.x = THREE.MathUtils.lerp(this.cubeGroup.rotation.x, targetX, 0.18);
-    this.cubeGroup.rotation.y = THREE.MathUtils.lerp(this.cubeGroup.rotation.y, targetY, 0.18);
+    const targetX = Math.sin(t * 0.32) * 0.008;
+    const targetY = Math.sin(t * 0.45) * 0.018;
+    const rotationLerp = Math.min(1, 4.2 * dt);
+
+    this.visualGroup.rotation.x = THREE.MathUtils.lerp(this.visualGroup.rotation.x, targetX, rotationLerp);
+    this.visualGroup.rotation.y = THREE.MathUtils.lerp(this.visualGroup.rotation.y, targetY, rotationLerp);
     this.updateGapGlow(activeMotion);
 
     // 1. Process drag inertia
     if (this.isDragging && this.dragStarted) {
-      this.dragCurrentAngle = THREE.MathUtils.lerp(this.dragCurrentAngle, this.dragTargetAngle, 0.12);
+      this.dragCurrentAngle = THREE.MathUtils.lerp(this.dragCurrentAngle, this.dragTargetAngle, Math.min(1, DRAG_FOLLOW_SPEED * dt));
       this.setRotationGroupAngle(this.dragCurrentAngle);
     }
 
     // 2. Process snap animations
     if (this.isSnapping) {
-      const lerpFactor = 0.14;
+      const lerpFactor = Math.min(1, SNAP_FOLLOW_SPEED * dt);
       this.snapCurrentAngle = THREE.MathUtils.lerp(this.snapCurrentAngle, this.snapTargetAngle, lerpFactor);
       this.setRotationGroupAngle(this.snapCurrentAngle);
 
