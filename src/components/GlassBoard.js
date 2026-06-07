@@ -293,17 +293,6 @@ export class GlassBoard {
     ctx.font = '700 24px Outfit, sans-serif';
     ctx.fillText(data.subtitle, left + 28, 218);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-    ctx.font = '400 30px Outfit, sans-serif';
-    this.wrapText(ctx, data.body, left + 28, 278, right - left - 28, 42, 3);
-
-    if (this.currentSection === 'welcome') {
-      this.drawLockedHint(ctx, left + 28, h - 112, right - left - 28);
-    }
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.48)';
-    ctx.font = '700 18px Outfit, sans-serif';
-    ctx.fillText(data.footer, left + 28, h - 44);
 
     ctx.restore();
     this.texture.needsUpdate = true;
