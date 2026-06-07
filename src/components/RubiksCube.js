@@ -278,7 +278,7 @@ export class RubiksCube {
       }
       return;
     }
-    if (this.isAnimating || this.isSnapping) return;
+    if (this.isAnimating || this.isSnapping || this.animationQueue.length > 0) return;
 
     this.mouseStart.copy(this.getMousePosition(e));
     this.mouseCurrent.copy(this.mouseStart);
@@ -574,7 +574,7 @@ export class RubiksCube {
 
   shuffle(steps = 15) {
     if (this.isLocked) return;
-    if (this.isAnimating || this.isSnapping) return;
+    if (this.isAnimating || this.isSnapping || this.isDragging) return;
     
     const axes = ['X', 'Y', 'Z'];
     const slices = [-1, 0, 1];
@@ -591,7 +591,7 @@ export class RubiksCube {
 
   turnRandomSlice() {
     if (this.isLocked) return;
-    if (this.isAnimating || this.isSnapping || this.animationQueue.length > 0) return;
+    if (this.isAnimating || this.isSnapping || this.isDragging || this.animationQueue.length > 0) return;
     
     const axes = ['X', 'Y', 'Z'];
     const slices = [-1, 0, 1];

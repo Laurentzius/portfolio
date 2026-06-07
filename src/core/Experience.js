@@ -533,6 +533,7 @@ export class Experience {
         && !this.rubiksCube.isLocked
         && !this.rubiksCube.isAnimating
         && !this.rubiksCube.isSnapping
+        && !this.rubiksCube.isDragging
         && this.rubiksCube.animationQueue.length === 0
       ) {
         const minMoves = 1;
