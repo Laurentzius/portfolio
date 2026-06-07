@@ -37,7 +37,9 @@ export class PortfolioNavigation {
 
   showCubeState(cubies) {
     const state = this.getCubeStateSection(cubies);
-    this.showSection(state);
+    if (state) {
+      this.showSection(state);
+    }
   }
 
   showCompromisedIntro() {
@@ -83,8 +85,6 @@ export class PortfolioNavigation {
       return 'about';
     }
 
-    if (misplacedCount <= 14) return 'voxel';
-    if (misplacedCount <= 20) return 'shader';
-    return 'contact';
+    return null;
   }
 }

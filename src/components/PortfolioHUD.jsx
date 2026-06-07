@@ -1,4 +1,5 @@
 import React from 'react';
+import { gsap } from 'gsap';
 import TargetCursor from './TargetCursor.jsx';
 
 const NAV_SECTIONS = [
@@ -13,6 +14,7 @@ export default function PortfolioHUD() {
   const [isRestored, setIsRestored] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const [sectionData, setSectionData] = React.useState(null);
+  const containerRef = React.useRef(null);
 
   React.useEffect(() => {
     const handleRestored = () => {
@@ -43,12 +45,46 @@ export default function PortfolioHUD() {
     };
   }, []);
 
+  const shouldShowCard = isMobile && sectionData && sectionData.sectionId !== 'contact';
+
+  React.useEffect(() => {
+    if (!isRestored) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Animate header-hud
+      gsap.fromTo('.branding',
+        { opacity: 0, y: -25 },
+        { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.1 }
+      );
+      gsap.fromTo('.subtitle',
+        { opacity: 0, y: -25 },
+        { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.25 }
+      );
+
+      // 2. Animate navigation buttons
+      gsap.fromTo('.portfolio-nav button',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.4 }
+      );
+
+      // 3. Animate mobile portfolio card if it is rendered
+      if (shouldShowCard) {
+        gsap.fromTo('.mobile-portfolio-card',
+          { opacity: 0, scale: 0.9, y: 15 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.6 }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [isRestored, shouldShowCard]);
+
   const getMinimalText = () => {
     if (!sectionData) return '';
     const sectionId = sectionData.sectionId;
     if (sectionId === 'welcome') {
       return isRestored
-        ? "HAKON — Creative WebGL Engineer"
+        ? "HAKON — Fullstack / AI First Engineer"
         : "Database Compromised — Tap pieces to restore";
     }
     // Map section IDs to minimal one-liners
@@ -60,15 +96,13 @@ export default function PortfolioHUD() {
     return maps[sectionId] || `${sectionData.data.title} — ${sectionData.data.subtitle}`;
   };
 
-  const shouldShowCard = isMobile && sectionData && sectionData.sectionId !== 'contact';
-
   return (
-    <div className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
+    <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
       <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />
 
       <header className="header-hud">
-        <div className="branding">HAKON / PORTFOLIO</div>
-        <div className="subtitle">SPATIAL 3D EXPERIENCE</div>
+        <div className="branding">XAKON.DEV // CORE</div>
+        <div className="subtitle">SYSTEM // ONLINE</div>
       </header>
 
       {shouldShowCard && (

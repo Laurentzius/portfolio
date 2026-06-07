@@ -142,6 +142,7 @@ export class Experience {
 
     // 5. Floating Glassmorphic UI Portfolio Board
     this.glassBoard = new GlassBoard(this.scene, this.camera);
+    this.glassBoard.setSuppressed(true); // Suppressed on welcome by default
     this.navigation = new PortfolioNavigation(this.glassBoard, this.audioEngine);
     this.physics = new LooseCubiePhysics();
     this.repairNarrative = new RepairNarrative(this.scene, this.rubiksCube, this.glassBoard);
@@ -216,8 +217,10 @@ export class Experience {
     if (this.currentSection === sectionId) return;
     this.currentSection = sectionId;
 
+    window.dispatchEvent(new CustomEvent('portfolio:section-change', { detail: { sectionId } }));
+
     if (this.glassBoard) {
-      this.glassBoard.setSuppressed(sectionId === 'contact');
+      this.glassBoard.setSuppressed(sectionId === 'contact' || sectionId === 'welcome');
     }
     this.navigation.showSection(sectionId);
     if (this.lighting) {

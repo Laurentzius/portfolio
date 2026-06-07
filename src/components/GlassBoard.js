@@ -47,8 +47,8 @@ export class GlassBoard {
       welcome: {
         eyebrow: '00 / PORTFOLIO',
         title: 'HAKON',
-        subtitle: 'CREATIVE WEBGL ENGINEER',
-        body: 'Spatial interfaces, real-time 3D, tactile frontend systems.',
+        subtitle: 'FULLSTACK / AI FIRST ENGINEER',
+        body: '',
         footer: 'CLICK A FACE OR PICK A SECTION'
       },
       about: {
@@ -207,8 +207,7 @@ export class GlassBoard {
     }
     if (suppressed) {
       this.targetScale = 0.0;
-      this.group.visible = false;
-    } else if (this.targetScale > 0.0) {
+    } else {
       this.group.visible = true;
     }
   }
@@ -397,6 +396,9 @@ export class GlassBoard {
         this.group.scale.set(nextScale, nextScale, nextScale);
       } else {
         this.group.scale.set(this.targetScale, this.targetScale, this.targetScale);
+        if (this.targetScale === 0.0) {
+          this.group.visible = false;
+        }
       }
     }
 

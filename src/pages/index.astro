@@ -16,17 +16,104 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
   <!-- 3D Canvas -->
   <canvas id="webgl"></canvas>
 
+  <!-- Large Background Title (shown on Home once restored) -->
+  <div id="home-title" class="home-title-container">
+    <h1 class="home-title-main">XAKON.DEV</h1>
+    <div class="home-title-sub">FULLSTACK / AI FIRST ENGINEER</div>
+  </div>
+
   <!-- HUD + Portfolio Navigation (React island, hydrated on load) -->
   <PortfolioHUD client:load />
 
   <script>
+    import { gsap } from 'gsap';
+
     const loader = document.getElementById('loader');
+    const homeTitle = document.getElementById('home-title');
+
+    // Helper to wrap each character in masked span elements
+    function splitTextIntoSpans(element) {
+      if (!element) return;
+      const text = element.textContent.trim();
+      element.innerHTML = '';
+      
+      text.split('').forEach(char => {
+        const outerSpan = document.createElement('span');
+        outerSpan.style.display = 'inline-block';
+        outerSpan.style.overflow = 'hidden';
+        outerSpan.style.verticalAlign = 'bottom';
+        
+        const innerSpan = document.createElement('span');
+        innerSpan.textContent = char === ' ' ? '\u00A0' : char;
+        innerSpan.style.display = 'inline-block';
+        innerSpan.className = 'char-inner';
+        
+        outerSpan.appendChild(innerSpan);
+        element.appendChild(outerSpan);
+      });
+    }
+
+    // Split main and subtitle text
+    if (homeTitle) {
+      const mainTitle = homeTitle.querySelector('.home-title-main');
+      splitTextIntoSpans(mainTitle);
+      const subTitle = homeTitle.querySelector('.home-title-sub');
+      splitTextIntoSpans(subTitle);
+    }
+
+    let isCubeRestored = false;
+    let titleTimeline = null;
+
+    const showHomeTitle = () => {
+      if (!homeTitle) return;
+      if (titleTimeline) titleTimeline.kill();
+
+      // Reset positioning and make container visible
+      gsap.set(homeTitle, { visibility: 'visible', opacity: 1, y: 0 });
+
+      const mainChars = homeTitle.querySelectorAll('.home-title-main .char-inner');
+      const subChars = homeTitle.querySelectorAll('.home-title-sub .char-inner');
+      titleTimeline = gsap.timeline();
+
+      titleTimeline
+        .fromTo(mainChars, 
+          { y: '105%', opacity: 0, rotateX: -30, skewY: 7 }, 
+          { y: '0%', opacity: 1, rotateX: 0, skewY: 0, duration: 0.8, stagger: 0.03, ease: 'power3.out' }
+        )
+        .fromTo(subChars, 
+          { y: '105%', opacity: 0, rotateX: -30, skewY: 7 }, 
+          { y: '0%', opacity: 1, rotateX: 0, skewY: 0, duration: 0.6, stagger: 0.012, ease: 'power3.out' },
+          '-=0.45'
+        );
+    };
+
+    const hideHomeTitle = () => {
+      if (!homeTitle) return;
+      if (titleTimeline) titleTimeline.kill();
+
+      titleTimeline = gsap.timeline();
+      titleTimeline.to(homeTitle, {
+        opacity: 0,
+        y: -20,
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: () => {
+          gsap.set(homeTitle, { visibility: 'hidden' });
+        }
+      });
+    };
 
     const initExperience = async () => {
       try {
         const { Experience } = await import('../core/Experience.js');
         const experience = new Experience('webgl');
         window.experience = experience;
+        
+        // Safety check if already restored
+        if (experience.repair?.repairedCount === 3) {
+          isCubeRestored = true;
+          updateHomeTitleVisibility(experience.currentSection || 'welcome');
+        }
       } catch (err) {
         console.error('Failed to load 3D Experience:', err);
       } finally {
@@ -37,6 +124,31 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         }, 600);
       }
     };
+
+    const updateHomeTitleVisibility = (sectionId) => {
+      if (homeTitle) {
+        if (sectionId === 'welcome' && isCubeRestored) {
+          showHomeTitle();
+        } else {
+          hideHomeTitle();
+        }
+      }
+    };
+
+    window.addEventListener('portfolio:section-change', (e) => {
+      const sectionId = e.detail.sectionId;
+      updateHomeTitleVisibility(sectionId);
+    });
+
+    window.addEventListener('cube-restored', () => {
+      isCubeRestored = true;
+      if (!window.experience || window.experience.currentSection === 'welcome') {
+        showHomeTitle();
+      }
+    });
+
+    // Initialize visibility on load
+    updateHomeTitleVisibility('welcome');
 
     initExperience();
   </script>
