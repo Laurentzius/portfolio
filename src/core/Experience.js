@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AudioEngine } from '../components/AudioEngine.js';
 import { Lighting } from './Lighting.js';
 import { Atmosphere } from './Atmosphere.js';
+import { PlanarReflections } from './PlanarReflections.js';
 import { RubiksCube } from '../components/RubiksCube.js';
 import { LooseCubie } from '../components/LooseCubie.js';
 import { GlassBoard } from '../components/GlassBoard.js';
@@ -101,6 +102,7 @@ export class Experience {
     // 2. Lighting & Environment
     this.lighting = new Lighting(this.scene, this.renderer);
     this.atmosphere = new Atmosphere(this.scene, this.camera);
+    this.planarReflections = new PlanarReflections(this.scene, this.renderer, this.camera);
 
     // 3. Rubik's Cube
     this.rubiksCube = new RubiksCube(this, null);
@@ -365,6 +367,11 @@ export class Experience {
         this.atmosphere.update(dt);
       }
 
+
+      if (this.planarReflections) {
+        this.planarReflections.update(this);
+      }
+
       // Render scene
       if (this.lighting && this.lighting.update) {
         this.lighting.update(this);
@@ -588,6 +595,9 @@ export class Experience {
     }
     if (this.socialModels) {
       this.socialModels.destroy();
+    }
+    if (this.planarReflections) {
+      this.planarReflections.dispose();
     }
     if (this.lighting && this.lighting.destroy) {
       this.lighting.destroy();

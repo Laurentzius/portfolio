@@ -305,7 +305,7 @@ export class Atmosphere {
           float freq = 52.0;
           float coordX = vUv.x * freq;
           float colIndex = floor(coordX);
-          float active = step(0.72, hash(colIndex + 143.0));
+          float streakActive = step(0.72, hash(colIndex + 143.0));
           float colSpeed = 0.55 + 0.25 * hash(colIndex + 37.0);
           float colOffset = hash(colIndex + 81.0) * 240.0;
           float progress = fract((y + speedMultiplier * colSpeed + colOffset) * 0.0125) * 80.0;
@@ -316,7 +316,7 @@ export class Atmosphere {
           float pxWidth = fwidth(coordX);
           float profile = smoothstep(0.05 + pxWidth, 0.05 - pxWidth, dx);
           float fade = smoothstep(-60.0, -30.0, y);
-          float alpha = streakValue * profile * active * fade * uStreaksIntensity * 0.18;
+          float alpha = streakValue * profile * streakActive * fade * uStreaksIntensity * 0.18;
           vec3 color = mix(uColor2, uColor3, hash(colIndex + 17.0)) * 1.15;
           gl_FragColor = vec4(color, alpha);
         }
