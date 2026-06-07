@@ -11,7 +11,6 @@ const GAP_GLOW = Object.freeze({
 
 const DRAG_ROTATION_SENSITIVITY = 0.78;
 const DRAG_FOLLOW_SPEED = 7.0;
-const SNAP_FOLLOW_SPEED = 6.2;
 
 export class RubiksCube {
   constructor(experience, onMoveCallback) {
@@ -278,7 +277,22 @@ export class RubiksCube {
       }
       return;
     }
-    if (this.isAnimating || this.isSnapping || this.animationQueue.length > 0) return;
+    if (this.isSnapping) {
+      this.setRotationGroupAngle(this.snapTargetAngle);
+      
+      const axisStr = this.getAxisString(this.snapAxis);
+      const axisSign = Math.sign(this.snapAxis[axisStr.toLowerCase()]);
+      const quarterTurns = Math.round((this.snapTargetAngle * axisSign) / (Math.PI / 2));
+      
+      if (quarterTurns % 4 !== 0) {
+        this.recordMove(axisStr, this.activeSliceCoord, quarterTurns);
+        if (this.onMoveCallback) this.onMoveCallback();
+      }
+
+      this.finalizeSliceRotation();
+    }
+
+    if (this.isAnimating || this.animationQueue.length > 0) return;
 
     this.mouseStart.copy(this.getMousePosition(e));
     this.mouseCurrent.copy(this.mouseStart);
@@ -443,7 +457,10 @@ export class RubiksCube {
       this.isSnapping = true;
       this.snapAxis = this.activeRotationAxis.clone();
       this.snapTargetAngle = targetAngle;
+      this.snapStartAngle = this.dragCurrentAngle;
       this.snapCurrentAngle = this.dragCurrentAngle;
+      this.snapStartTime = performance.now();
+      this.snapDuration = 250;
     } else {
       if (this.exp.controls) this.exp.controls.enabled = true;
       this.resetDragState();
@@ -483,11 +500,16 @@ export class RubiksCube {
 
     // 2. Process snap animations
     if (this.isSnapping) {
-      const lerpFactor = Math.min(1, SNAP_FOLLOW_SPEED * dt);
-      this.snapCurrentAngle = THREE.MathUtils.lerp(this.snapCurrentAngle, this.snapTargetAngle, lerpFactor);
+      const elapsed = performance.now() - this.snapStartTime;
+      const progress = Math.min(elapsed / this.snapDuration, 1.0);
+      
+      // Cubic ease-out
+      const ease = 1 - Math.pow(1 - progress, 3);
+      
+      this.snapCurrentAngle = THREE.MathUtils.lerp(this.snapStartAngle, this.snapTargetAngle, ease);
       this.setRotationGroupAngle(this.snapCurrentAngle);
 
-      if (Math.abs(this.snapCurrentAngle - this.snapTargetAngle) < 0.001) {
+      if (progress >= 1.0) {
         this.setRotationGroupAngle(this.snapTargetAngle);
         
         const axisStr = this.getAxisString(this.snapAxis);
