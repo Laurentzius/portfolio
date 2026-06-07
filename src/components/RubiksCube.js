@@ -289,7 +289,7 @@ export class RubiksCube {
         if (this.onMoveCallback) this.onMoveCallback();
       }
 
-      this.finalizeSliceRotation();
+      this.finalizeSliceRotation(true);
     }
 
     if (this.isAnimating || this.animationQueue.length > 0) return;
@@ -526,7 +526,7 @@ export class RubiksCube {
           if (this.onMoveCallback) this.onMoveCallback();
         }
 
-        this.finalizeSliceRotation();
+        this.finalizeSliceRotation(true);
       }
     }
 
@@ -537,7 +537,7 @@ export class RubiksCube {
     }
   }
 
-  finalizeSliceRotation() {
+  finalizeSliceRotation(isManual = false) {
     const tempArray = [...this.rotationGroup.children];
     tempArray.forEach(cubie => {
       this.cubeGroup.attach(cubie);
@@ -563,7 +563,7 @@ export class RubiksCube {
     if (this.exp.controls) this.exp.controls.enabled = true;
 
     // Trigger state check when layer snaps or finishes twist
-    if (this.exp.onCubeStateChanged) {
+    if (isManual && this.exp.onCubeStateChanged) {
       this.exp.onCubeStateChanged();
     }
   }
@@ -667,7 +667,7 @@ export class RubiksCube {
           this.recordMove(move.axis, move.slice, move.turns);
         }
         
-        this.finalizeSliceRotation();
+        this.finalizeSliceRotation(false);
         this.isAnimating = false;
       }
     };
