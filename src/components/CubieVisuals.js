@@ -39,11 +39,17 @@ export function applySharpMirrorCoat(material, planarUniforms, strength) {
         `#include <common>
 varying vec3 vPlanarWorldPosition;
 uniform sampler2D uPlanarReflectionRight;
+uniform sampler2D uPlanarReflectionLeft;
 uniform sampler2D uPlanarReflectionTop;
+uniform sampler2D uPlanarReflectionBottom;
 uniform sampler2D uPlanarReflectionFront;
+uniform sampler2D uPlanarReflectionBack;
 uniform mat4 uPlanarReflectionMatrixRight;
+uniform mat4 uPlanarReflectionMatrixLeft;
 uniform mat4 uPlanarReflectionMatrixTop;
+uniform mat4 uPlanarReflectionMatrixBottom;
 uniform mat4 uPlanarReflectionMatrixFront;
+uniform mat4 uPlanarReflectionMatrixBack;
 uniform float uPlanarReflectionStrength;`
       )
       .replace(
@@ -56,25 +62,52 @@ uniform float uPlanarReflectionStrength;`
           vec3 planarColor = vec3( 0.0 );
           float planarWeight = 0.0;
           if ( planarAbsNormal.x >= planarAbsNormal.y && planarAbsNormal.x >= planarAbsNormal.z ) {
-            planarCoord = uPlanarReflectionMatrixRight * vec4( vPlanarWorldPosition, 1.0 );
-            vec3 planarUv = planarCoord.xyz / planarCoord.w;
-            if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-              planarColor = texture2D( uPlanarReflectionRight, planarUv.xy ).rgb;
-              planarWeight = planarAbsNormal.x;
+            if ( planarNormal.x >= 0.0 ) {
+              planarCoord = uPlanarReflectionMatrixRight * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionRight, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.x;
+              }
+            } else {
+              planarCoord = uPlanarReflectionMatrixLeft * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionLeft, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.x;
+              }
             }
           } else if ( planarAbsNormal.y >= planarAbsNormal.x && planarAbsNormal.y >= planarAbsNormal.z ) {
-            planarCoord = uPlanarReflectionMatrixTop * vec4( vPlanarWorldPosition, 1.0 );
-            vec3 planarUv = planarCoord.xyz / planarCoord.w;
-            if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-              planarColor = texture2D( uPlanarReflectionTop, planarUv.xy ).rgb;
-              planarWeight = planarAbsNormal.y;
+            if ( planarNormal.y >= 0.0 ) {
+              planarCoord = uPlanarReflectionMatrixTop * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionTop, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.y;
+              }
+            } else {
+              planarCoord = uPlanarReflectionMatrixBottom * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionBottom, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.y;
+              }
             }
           } else if ( planarAbsNormal.z >= planarAbsNormal.x && planarAbsNormal.z >= planarAbsNormal.y ) {
-            planarCoord = uPlanarReflectionMatrixFront * vec4( vPlanarWorldPosition, 1.0 );
-            vec3 planarUv = planarCoord.xyz / planarCoord.w;
-            if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
-              planarColor = texture2D( uPlanarReflectionFront, planarUv.xy ).rgb;
-              planarWeight = planarAbsNormal.z;
+            if ( planarNormal.z >= 0.0 ) {
+              planarCoord = uPlanarReflectionMatrixFront * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionFront, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.z;
+              }
+            } else {
+              planarCoord = uPlanarReflectionMatrixBack * vec4( vPlanarWorldPosition, 1.0 );
+              vec3 planarUv = planarCoord.xyz / planarCoord.w;
+              if ( planarUv.x >= 0.0 && planarUv.x <= 1.0 && planarUv.y >= 0.0 && planarUv.y <= 1.0 ) {
+                planarColor = texture2D( uPlanarReflectionBack, planarUv.xy ).rgb;
+                planarWeight = planarAbsNormal.z;
+              }
             }
           }
           outgoingLight = mix( outgoingLight, max( outgoingLight, planarColor * 1.35 ), planarWeight * uPlanarReflectionStrength * ${strength.toFixed(2)} );

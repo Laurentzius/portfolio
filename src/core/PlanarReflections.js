@@ -2,14 +2,18 @@ import * as THREE from 'three';
 
 const REFLECTIONS = Object.freeze({
   right: Object.freeze({ normal: new THREE.Vector3(1, 0, 0), point: new THREE.Vector3(1.48, 0, 0) }),
+  left: Object.freeze({ normal: new THREE.Vector3(-1, 0, 0), point: new THREE.Vector3(-1.48, 0, 0) }),
   top: Object.freeze({ normal: new THREE.Vector3(0, 1, 0), point: new THREE.Vector3(0, 1.48, 0) }),
+  bottom: Object.freeze({ normal: new THREE.Vector3(0, -1, 0), point: new THREE.Vector3(0, -1.48, 0) }),
   front: Object.freeze({ normal: new THREE.Vector3(0, 0, 1), point: new THREE.Vector3(0, 0, 1.48) }),
+  back: Object.freeze({ normal: new THREE.Vector3(0, 0, -1), point: new THREE.Vector3(0, 0, -1.48) }),
 });
 
 const _target = new THREE.Vector3();
 const _reflectedTarget = new THREE.Vector3();
 const _reflectedPosition = new THREE.Vector3();
 const _pointToPlane = new THREE.Vector3();
+const _cameraToPlane = new THREE.Vector3();
 const _plane = new THREE.Plane();
 const _clipPlane = new THREE.Vector4();
 const _q = new THREE.Vector4();
@@ -33,20 +37,30 @@ export class PlanarReflections {
     this.renderer = renderer;
     this.camera = camera;
     this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    this.renderedPlanes = 0;
     this.resolution = this.isMobile ? 768 : 1536;
     this.reflectionCamera = new THREE.PerspectiveCamera(camera.fov, camera.aspect, camera.near, camera.far);
     this.targets = {
       right: this.createTarget(),
+      left: this.createTarget(),
       top: this.createTarget(),
+      bottom: this.createTarget(),
       front: this.createTarget(),
+      back: this.createTarget(),
     };
     this.uniforms = {
       uPlanarReflectionRight: { value: this.targets.right.texture },
+      uPlanarReflectionLeft: { value: this.targets.left.texture },
       uPlanarReflectionTop: { value: this.targets.top.texture },
+      uPlanarReflectionBottom: { value: this.targets.bottom.texture },
       uPlanarReflectionFront: { value: this.targets.front.texture },
+      uPlanarReflectionBack: { value: this.targets.back.texture },
       uPlanarReflectionMatrixRight: { value: new THREE.Matrix4() },
+      uPlanarReflectionMatrixLeft: { value: new THREE.Matrix4() },
       uPlanarReflectionMatrixTop: { value: new THREE.Matrix4() },
+      uPlanarReflectionMatrixBottom: { value: new THREE.Matrix4() },
       uPlanarReflectionMatrixFront: { value: new THREE.Matrix4() },
+      uPlanarReflectionMatrixBack: { value: new THREE.Matrix4() },
       uPlanarReflectionStrength: { value: 0.42 },
     };
   }
@@ -86,9 +100,15 @@ export class PlanarReflections {
     this.renderer.shadowMap.autoUpdate = false;
 
     this.camera.getWorldDirection(_target).add(this.camera.position);
-    this.renderPlane('right', REFLECTIONS.right);
-    this.renderPlane('top', REFLECTIONS.top);
-    this.renderPlane('front', REFLECTIONS.front);
+    this.renderedPlanes = 0;
+    for (const name in REFLECTIONS) {
+      const plane = REFLECTIONS[name];
+      _cameraToPlane.subVectors(plane.point, this.camera.position);
+      if (_cameraToPlane.dot(plane.normal) > 0) {
+        this.renderedPlanes += 1;
+        this.renderPlane(name, plane);
+      }
+    }
 
     this.renderer.setRenderTarget(previousTarget);
     this.renderer.xr.enabled = previousXr;
@@ -140,8 +160,8 @@ export class PlanarReflections {
   }
 
   dispose() {
-    this.targets.right.dispose();
-    this.targets.top.dispose();
-    this.targets.front.dispose();
+    for (const name in this.targets) {
+      this.targets[name].dispose();
+    }
   }
 }
