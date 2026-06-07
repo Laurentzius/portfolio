@@ -220,7 +220,7 @@ export class Experience {
     window.dispatchEvent(new CustomEvent('portfolio:section-change', { detail: { sectionId } }));
 
     if (this.glassBoard) {
-      this.glassBoard.setSuppressed(sectionId === 'contact' || sectionId === 'welcome');
+      this.glassBoard.setSuppressed(true);
     }
     this.navigation.showSection(sectionId);
     if (this.lighting) {

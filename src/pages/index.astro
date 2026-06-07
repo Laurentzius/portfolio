@@ -16,10 +16,77 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
   <!-- 3D Canvas -->
   <canvas id="webgl"></canvas>
 
-  <!-- Large Background Title (shown on Home once restored) -->
-  <div id="home-title" class="home-title-container">
-    <h1 class="home-title-main">XAKON.DEV</h1>
-    <div class="home-title-sub">FULLSTACK / AI FIRST ENGINEER</div>
+  <!-- Unified 2D Section Typography Overlays -->
+  <div id="section-titles">
+    <!-- Welcome (Home) -->
+    <div id="title-welcome" class="section-title-container">
+      <h1 class="section-title-main">XAKON.DEV</h1>
+      <div class="section-title-sub">FULLSTACK / AI FIRST ENGINEER</div>
+    </div>
+    
+    <!-- About -->
+    <div id="title-about" class="section-title-container">
+      <div class="section-eyebrow">01 / ABOUT</div>
+      <h2 class="section-title-main">TACTILE WEB</h2>
+      <div class="section-title-sub">DESIGNING INTERACTIONS</div>
+      <p class="section-title-desc">Frontend developer focused on creative coding, WebGL, physics-driven UI, and premium motion.</p>
+    </div>
+    
+    <!-- Skills -->
+    <div id="title-skills" class="section-title-container">
+      <div class="section-eyebrow">02 / STACK</div>
+      <h2 class="section-title-main">GRAPHICS + UI</h2>
+      <div class="section-title-sub">THREE.JS / REACT / ASTRO</div>
+      <p class="section-title-desc">WebGL, GLSL, Three.js, React, TypeScript, audio systems, procedural animation.</p>
+    </div>
+    
+    <!-- Experience -->
+    <div id="title-experience" class="section-title-container">
+      <div class="section-eyebrow">03 / WORK</div>
+      <h2 class="section-title-main">CASE ORBIT</h2>
+      <div class="section-title-sub">VOXEL / SHADER / AUDIO</div>
+      <ul class="section-title-list">
+        <li><span>[01]</span> Voxel terrain engine</li>
+        <li><span>[02]</span> GLSL raymarch playground</li>
+        <li><span>[03]</span> Spatial synth interface</li>
+      </ul>
+    </div>
+    
+    <!-- Contact -->
+    <div id="title-contact" class="section-title-container">
+      <div class="section-eyebrow">04 / CONTACT</div>
+      <h2 class="section-title-main">SIGNAL MODE</h2>
+      <div class="section-title-sub">TRANSMISSION CHANNELS</div>
+      <ul class="section-title-list">
+        <li><span>[EMAIL]</span> hello@hakon.dev</li>
+        <li><span>[TELEGRAM]</span> @hakon_dev</li>
+        <li><span>[GITHUB]</span> github.com/hakon-dev</li>
+      </ul>
+    </div>
+
+    <!-- Voxel Case Study -->
+    <div id="title-voxel" class="section-title-container">
+      <div class="section-eyebrow">CASE / VOXEL</div>
+      <h2 class="section-title-main">VOXEL ENGINE</h2>
+      <div class="section-title-sub">REAL-TIME BROWSER ENGINE</div>
+      <p class="section-title-desc">Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.</p>
+    </div>
+
+    <!-- Shader Case Study -->
+    <div id="title-shader" class="section-title-container">
+      <div class="section-eyebrow">CASE / SHADER</div>
+      <h2 class="section-title-main">RAYMARCHER</h2>
+      <div class="section-title-sub">SDF RENDERER PLAYGROUND</div>
+      <p class="section-title-desc">Morphing metallic fields, soft shadows, and ambient occlusion in custom GLSL.</p>
+    </div>
+
+    <!-- Audio Case Study -->
+    <div id="title-audio" class="section-title-container">
+      <div class="section-eyebrow">CASE / AUDIO</div>
+      <h2 class="section-title-main">SPATIAL SYNTH</h2>
+      <div class="section-title-sub">WEB AUDIO API</div>
+      <p class="section-title-desc">FM synthesis, LFOs, and gain envelopes driven by canvas interactions.</p>
+    </div>
   </div>
 
   <!-- HUD + Portfolio Navigation (React island, hydrated on load) -->
@@ -29,7 +96,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     import { gsap } from 'gsap';
 
     const loader = document.getElementById('loader');
-    const homeTitle = document.getElementById('home-title');
 
     // Helper to wrap each character in masked span elements
     function splitTextIntoSpans(element) {
@@ -53,52 +119,98 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       });
     }
 
-    // Split main and subtitle text
-    if (homeTitle) {
-      const mainTitle = homeTitle.querySelector('.home-title-main');
-      splitTextIntoSpans(mainTitle);
-      const subTitle = homeTitle.querySelector('.home-title-sub');
-      splitTextIntoSpans(subTitle);
-    }
+    // Split all section titles and subtitles
+    document.querySelectorAll('.section-title-container').forEach(container => {
+      const mainTitle = container.querySelector('.section-title-main');
+      if (mainTitle) splitTextIntoSpans(mainTitle);
+      const subTitle = container.querySelector('.section-title-sub');
+      if (subTitle) splitTextIntoSpans(subTitle);
+    });
 
     let isCubeRestored = false;
-    let titleTimeline = null;
+    let activeSection = 'welcome';
+    let sectionTimelines = {};
 
-    const showHomeTitle = () => {
-      if (!homeTitle) return;
-      if (titleTimeline) titleTimeline.kill();
+    const showSectionTitle = (sectionId) => {
+      const el = document.getElementById(`title-${sectionId}`);
+      if (!el) return;
+
+      if (sectionTimelines[sectionId]) sectionTimelines[sectionId].kill();
 
       // Reset positioning and make container visible
-      gsap.set(homeTitle, { visibility: 'visible', opacity: 1, y: 0 });
+      gsap.set(el, { visibility: 'visible', opacity: 1, y: 0 });
 
-      const mainChars = homeTitle.querySelectorAll('.home-title-main .char-inner');
-      const subChars = homeTitle.querySelectorAll('.home-title-sub .char-inner');
-      titleTimeline = gsap.timeline();
+      const mainTitle = el.querySelector('.section-title-main');
+      const subTitle = el.querySelector('.section-title-sub');
+      const eyebrow = el.querySelector('.section-eyebrow');
+      const desc = el.querySelector('.section-title-desc');
+      const listItems = el.querySelectorAll('.section-title-list li');
 
-      titleTimeline
-        .fromTo(mainChars, 
+      const tl = gsap.timeline();
+      sectionTimelines[sectionId] = tl;
+
+      // Animating title characters
+      const mainChars = mainTitle?.querySelectorAll('.char-inner');
+      if (mainChars && mainChars.length > 0) {
+        tl.fromTo(mainChars, 
           { y: '105%', opacity: 0, rotateX: -30, skewY: 7 }, 
           { y: '0%', opacity: 1, rotateX: 0, skewY: 0, duration: 0.8, stagger: 0.03, ease: 'power3.out' }
-        )
-        .fromTo(subChars, 
+        );
+      }
+
+      // Animating subtitle characters
+      const subChars = subTitle?.querySelectorAll('.char-inner');
+      if (subChars && subChars.length > 0) {
+        tl.fromTo(subChars, 
           { y: '105%', opacity: 0, rotateX: -30, skewY: 7 }, 
           { y: '0%', opacity: 1, rotateX: 0, skewY: 0, duration: 0.6, stagger: 0.012, ease: 'power3.out' },
           '-=0.45'
         );
+      }
+
+      // Animating eyebrow
+      if (eyebrow) {
+        tl.fromTo(eyebrow,
+          { opacity: 0, y: -10, letterSpacing: '8px' },
+          { opacity: 0.58, y: 0, letterSpacing: '4px', duration: 0.8, ease: 'power2.out' },
+          '-=0.6'
+        );
+      }
+
+      // Animating description
+      if (desc) {
+        tl.fromTo(desc, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+          '-=0.5'
+        );
+      }
+
+      // Animating list items
+      if (listItems && listItems.length > 0) {
+        tl.fromTo(listItems,
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out' },
+          '-=0.5'
+        );
+      }
     };
 
-    const hideHomeTitle = () => {
-      if (!homeTitle) return;
-      if (titleTimeline) titleTimeline.kill();
+    const hideSectionTitle = (sectionId) => {
+      const el = document.getElementById(`title-${sectionId}`);
+      if (!el) return;
 
-      titleTimeline = gsap.timeline();
-      titleTimeline.to(homeTitle, {
+      if (sectionTimelines[sectionId]) sectionTimelines[sectionId].kill();
+
+      const tl = gsap.timeline();
+      sectionTimelines[sectionId] = tl;
+      tl.to(el, {
         opacity: 0,
         y: -20,
         duration: 0.2,
         ease: 'power2.in',
         onComplete: () => {
-          gsap.set(homeTitle, { visibility: 'hidden' });
+          gsap.set(el, { visibility: 'hidden' });
         }
       });
     };
@@ -112,7 +224,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         // Safety check if already restored
         if (experience.repair?.repairedCount === 3) {
           isCubeRestored = true;
-          updateHomeTitleVisibility(experience.currentSection || 'welcome');
+          updateSectionVisibility(experience.currentSection || 'welcome');
         }
       } catch (err) {
         console.error('Failed to load 3D Experience:', err);
@@ -125,30 +237,31 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       }
     };
 
-    const updateHomeTitleVisibility = (sectionId) => {
-      if (homeTitle) {
-        if (sectionId === 'welcome' && isCubeRestored) {
-          showHomeTitle();
+    const updateSectionVisibility = (sectionId) => {
+      if (isCubeRestored) {
+        if (activeSection !== sectionId) {
+          hideSectionTitle(activeSection);
+          activeSection = sectionId;
+          showSectionTitle(sectionId);
         } else {
-          hideHomeTitle();
+          showSectionTitle(sectionId);
         }
       }
     };
 
     window.addEventListener('portfolio:section-change', (e) => {
       const sectionId = e.detail.sectionId;
-      updateHomeTitleVisibility(sectionId);
+      updateSectionVisibility(sectionId);
     });
 
     window.addEventListener('cube-restored', () => {
       isCubeRestored = true;
-      if (!window.experience || window.experience.currentSection === 'welcome') {
-        showHomeTitle();
-      }
+      activeSection = window.experience?.currentSection || 'welcome';
+      showSectionTitle(activeSection);
     });
 
     // Initialize visibility on load
-    updateHomeTitleVisibility('welcome');
+    updateSectionVisibility('welcome');
 
     initExperience();
   </script>
