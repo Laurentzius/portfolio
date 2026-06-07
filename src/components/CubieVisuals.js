@@ -49,23 +49,23 @@ export function createCubieMaterials() {
 
   return {
     bodyMaterial: new THREE.MeshPhysicalMaterial({
-      color: 0x2d2d2d,
-      metalness: 0.82,
-      roughness: 0.38,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.25,
-      envMapIntensity: 0.85,
+      color: 0x1b1b1b,
+      metalness: 0.9,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 1.5,
     }),
     tileMaterial: new THREE.MeshPhysicalMaterial({
-      color: 0x454545,
-      roughness: 0.035,
-      metalness: 0.82,
+      color: 0xcccccc,
+      roughness: 0.0,
+      metalness: 1.0,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.018,
+      clearcoatRoughness: 0.0,
       transmission: 0.0,
-      ior: 1.8,
+      ior: 2.0,
       specularIntensity: 1.0,
-      envMapIntensity: 1.45,
+      envMapIntensity: 2.2,
     }),
   };
 }
