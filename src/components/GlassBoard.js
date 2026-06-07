@@ -2,6 +2,9 @@ import * as THREE from 'three';
 
 const BADGE_WIDTH = 1.72;
 const BADGE_HEIGHT = 0.86;
+const DEFAULT_BOARD_POSITION = new THREE.Vector3(1.45, 0.72, -4.35);
+const CENTERED_BOARD_POSITION = new THREE.Vector3(1.45, 0.0, -4.35);
+
 
 export class GlassBoard {
   constructor(scene, camera) {
@@ -31,7 +34,8 @@ export class GlassBoard {
     this.cameraRight = new THREE.Vector3();
     this.cameraUp = new THREE.Vector3();
     this.badgePosition = new THREE.Vector3();
-    this.basePosition = new THREE.Vector3(1.45, 0.72, -4.35);
+    this.basePosition = DEFAULT_BOARD_POSITION.clone();
+    this.targetBasePosition = CENTERED_BOARD_POSITION.clone();
     this.floatTime = Math.random() * 10;
     this.cursorTarget = new THREE.Vector2();
     this.cursorCurrent = new THREE.Vector2();
@@ -233,10 +237,17 @@ export class GlassBoard {
     }
   }
 
+  getSectionPosition(sectionId) {
+    return sectionId === 'welcome' || sectionId === 'skills'
+      ? CENTERED_BOARD_POSITION
+      : DEFAULT_BOARD_POSITION;
+  }
+
   updateContent(sectionId) {
     if (!this.portfolioData[sectionId]) return;
     if (this.currentSection === sectionId) return;
 
+    this.targetBasePosition.copy(this.getSectionPosition(sectionId));
     this.targetOpacity = 0.0;
     this.pendingSection = sectionId;
   }
@@ -389,6 +400,8 @@ export class GlassBoard {
       }
     }
 
+
+    this.basePosition.lerp(this.targetBasePosition, Math.min(dt * 5.0, 1));
 
     this.floatTime += dt;
     this.cursorCurrent.lerp(this.cursorTarget, Math.min(dt * 3.5, 1));
