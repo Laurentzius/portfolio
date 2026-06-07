@@ -34,7 +34,7 @@ const THEMES = Object.freeze({
     background: new THREE.Color('#030712'),
     glowColor: new THREE.Color('#111318'),
     glowIntensity: 0.58,
-    speed: 0.58,
+    speed: 0.34,
   },
 });
 
