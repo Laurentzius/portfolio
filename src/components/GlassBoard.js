@@ -76,7 +76,7 @@ export class GlassBoard {
         eyebrow: '04 / CONTACT',
         title: 'SIGNAL MODE',
         subtitle: 'TRANSMISSION CHANNELS',
-        body: '[EMAIL] hello@hakon.dev\\n[TELEGRAM] @hakon_dev\\n[GITHUB] github.com/hakon-dev',
+        body: '',
         footer: 'READY TO RECEIVE'
       },
       voxel: {
