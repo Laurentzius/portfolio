@@ -4,8 +4,8 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
 ---
 
 <Layout
-  title="Minimalist Glossy Rubik's Cube"
-  description="Интерактивный трехмерный кубик Рубика в минималистичном белом стиле с реалистичными тенями и глянцевыми отражениями."
+  title="Hakon | Fullstack & AI First Engineer Portfolio"
+  description="Interactive 3D WebGL portfolio and spatial Rubik's Cube workshop by Hakon. Exploring creative coding, React, Astro, Three.js, and solid software architecture."
 >
   <!-- Loading Screen -->
   <div id="loader" class="loader-container">
@@ -219,6 +219,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         // Safety check if already restored
         if (experience.repair?.repairedCount === 3) {
           isCubeRestored = true;
+          document.body.classList.add('cube-is-restored');
           updateSectionVisibility(experience.currentSection || 'welcome');
         }
       } catch (err) {
@@ -251,6 +252,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
 
     window.addEventListener('cube-restored', () => {
       isCubeRestored = true;
+      document.body.classList.add('cube-is-restored');
       activeSection = window.experience?.currentSection || 'welcome';
       showSectionTitle(activeSection);
     });

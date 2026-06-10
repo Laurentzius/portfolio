@@ -20,6 +20,7 @@ export class RubiksCube {
     this.domElement = experience.canvas;
     this.audioEngine = experience.audioEngine;
     this.onMoveCallback = onMoveCallback;
+    this.clickRaycaster = new THREE.Raycaster();
 
     this.visualGroup = new THREE.Group();
     this.scene.add(this.visualGroup);
@@ -268,7 +269,7 @@ export class RubiksCube {
   onPointerDown(e) {
     if (this.isLocked) {
       const mouse = this.getMousePosition(e);
-      const raycaster = new THREE.Raycaster();
+      const raycaster = this.clickRaycaster;
       raycaster.setFromCamera(mouse, this.camera);
       const intersects = raycaster.intersectObjects(this.cubeGroup.children, true);
       const tileIntersect = intersects.find(intersect => intersect.object.userData.isTile);
@@ -566,6 +567,9 @@ export class RubiksCube {
     if (isManual && this.exp.onCubeStateChanged) {
       this.exp.onCubeStateChanged();
     }
+    if (this.exp.updateLogosProjection) {
+      this.exp.updateLogosProjection();
+    }
   }
 
   roundQuaternion(q) {
@@ -691,5 +695,26 @@ export class RubiksCube {
       this.gapGlowTexture.dispose();
       this.gapGlowTexture = null;
     }
+
+    this.cubies.forEach(cubie => {
+      this.cubeGroup.remove(cubie);
+      cubie.traverse(child => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach(m => m.dispose());
+            } else {
+              child.material.dispose();
+            }
+          }
+        }
+      });
+    });
+    this.cubies.length = 0;
+
+    if (this.bodyMaterial) this.bodyMaterial.dispose();
+    if (this.tileMaterial) this.tileMaterial.dispose();
+    this.scene.remove(this.visualGroup);
   }
 }

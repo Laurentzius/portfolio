@@ -1,3 +1,4 @@
+import { isMobile } from '../utils/device.js';
 import * as THREE from 'three';
 
 export class Lighting {
@@ -5,9 +6,8 @@ export class Lighting {
     this.scene = scene;
     this.renderer = renderer;
 
-    this.isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    this.unlockPulseUntil = 0;
-    this.environmentResolution = this.isMobile ? 128 : 1024;
+    this.isMobile = isMobile;
+    this.environmentResolution = this.isMobile ? 128 : 512;
     this.initLights();
     this.initEnvironment();
   }
@@ -233,15 +233,13 @@ export class Lighting {
     
     const targetRes = this.isMobile
       ? (cubeIsTwisting ? 128 : 256)
-      : 2048;
+      : 512;
     this.setEnvironmentResolution(targetRes);
 
-    // Throttle environment updates on mobile to save GPU cycles
-    let shouldUpdate = true;
-    if (this.isMobile) {
-      this.frameCounter = (this.frameCounter || 0) + 1;
-      shouldUpdate = (this.frameCounter % 4 === 0);
-    }
+    // Throttle environment updates to save GPU cycles (every 2 frames on desktop, every 4 frames on mobile)
+    this.frameCounter = (this.frameCounter || 0) + 1;
+    const throttleRate = this.isMobile ? 4 : 2;
+    const shouldUpdate = (this.frameCounter % throttleRate === 0);
 
     if (shouldUpdate) {
       // 1. Hide objects we don't want in the reflection
@@ -272,11 +270,17 @@ export class Lighting {
         });
       }
 
-      // 2. Render only the continuous atmosphere into the reflection map.
+      // 2. Render the atmosphere and softboxes into the reflection map.
       experience.atmosphere?.beginReflectionCapture?.();
+      if (this.studioLightsGroup) {
+        this.studioLightsGroup.visible = true;
+      }
       try {
         this.cubeCamera.update(this.renderer, this.scene);
       } finally {
+        if (this.studioLightsGroup) {
+          this.studioLightsGroup.visible = false;
+        }
         experience.atmosphere?.endReflectionCapture?.();
       }
 

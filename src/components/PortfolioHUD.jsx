@@ -1,3 +1,4 @@
+import { checkIsMobileLayout } from '../utils/device.js';
 import React from 'react';
 import { gsap } from 'gsap';
 import TargetCursor from './TargetCursor.jsx';
@@ -13,12 +14,13 @@ const NAV_SECTIONS = [
 export default function PortfolioHUD() {
   const [isRestored, setIsRestored] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+  const [lockedHintActive, setLockedHintActive] = React.useState(false);
   const [sectionData, setSectionData] = React.useState(null);
   const containerRef = React.useRef(null);
-
   React.useEffect(() => {
     const handleRestored = () => {
       setIsRestored(true);
+      document.body.classList.add('cube-is-restored');
     };
     window.addEventListener('cube-restored', handleRestored);
 
@@ -28,7 +30,7 @@ export default function PortfolioHUD() {
     window.addEventListener('portfolio:section-data', handleSectionData);
 
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+      setIsMobile(checkIsMobileLayout());
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -36,12 +38,24 @@ export default function PortfolioHUD() {
     // Initial check (in case it is already restored when HUD mounts)
     if (window.experience?.repair?.repairedCount === 3) {
       setIsRestored(true);
+      document.body.classList.add('cube-is-restored');
     }
+    let hintTimeout = null;
+    const handleLockedHint = () => {
+      setLockedHintActive(true);
+      if (hintTimeout) clearTimeout(hintTimeout);
+      hintTimeout = setTimeout(() => {
+        setLockedHintActive(false);
+      }, 1200);
+    };
+    window.addEventListener('portfolio:locked-hint', handleLockedHint);
 
     return () => {
       window.removeEventListener('cube-restored', handleRestored);
       window.removeEventListener('portfolio:section-data', handleSectionData);
+      window.removeEventListener('portfolio:locked-hint', handleLockedHint);
       window.removeEventListener('resize', checkMobile);
+      if (hintTimeout) clearTimeout(hintTimeout);
     };
   }, []);
 
@@ -97,7 +111,11 @@ export default function PortfolioHUD() {
   };
 
   return (
-    <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
+    <>
+      <div className={`locked-hint-toast ${lockedHintActive ? 'locked-hint-toast--visible' : ''}`}>
+        RESTORE MISSING CUBIES FIRST
+      </div>
+      <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
       <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />
 
       <header className="header-hud">
@@ -119,5 +137,7 @@ export default function PortfolioHUD() {
         ))}
       </nav>
     </div>
+    </>
   );
 }
+

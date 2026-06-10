@@ -20,6 +20,7 @@ export class InteractionManager {
     this.pointerDownTime = 0;
     this.pointerDownPosition = new THREE.Vector2();
 
+    this.hoverNeedsUpdate = false;
     this.bindEvents();
   }
 
@@ -114,9 +115,15 @@ export class InteractionManager {
       return;
     }
 
-    // 3. Otherwise handle hover states (cursor pointer/grab)
+    // 3. Otherwise defer hover check to next tick
+    this.hoverNeedsUpdate = true;
+  }
 
-    // Set cursor styling
+  update(dt) {
+    if (!this.hoverNeedsUpdate) return;
+    this.hoverNeedsUpdate = false;
+
+    this.raycaster.setFromCamera(this.mouse, this.exp.camera);
     let isHoveringInteractable = false;
 
     if (this.exp.socialModels?.visible) {
@@ -137,7 +144,6 @@ export class InteractionManager {
       const looseHit = intersects.find(intersect => intersect.object.userData.isLooseCubie);
       if (looseHit) isHoveringInteractable = true;
     }
-
 
     this.exp.canvas.style.cursor = isHoveringInteractable ? 'grab' : 'default';
   }
@@ -192,8 +198,9 @@ export class InteractionManager {
         }
       }
 
-      // A. Check loose cubies hit for case projects navigation (desktop or unlocked puzzle)
-      if (this.exp.looseCubies && this.exp.looseCubies.length > 0) {
+      // A. Check loose cubies hit for case projects navigation (only when puzzle is unlocked)
+      const isLocked = this.exp.rubiksCube && this.exp.rubiksCube.isLocked;
+      if (!isLocked && this.exp.looseCubies && this.exp.looseCubies.length > 0) {
         const groupsToRaycast = this.exp.looseCubies.map(cubie => cubie.group);
         const looseIntersects = this.raycaster.intersectObjects(groupsToRaycast, true);
         const looseHit = looseIntersects.find(intersect => intersect.object.userData.isLooseCubie);

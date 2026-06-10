@@ -1,3 +1,4 @@
+import { isMobile } from '../utils/device.js';
 import * as THREE from 'three';
 
 const THEMES = Object.freeze({
@@ -56,6 +57,8 @@ export class Atmosphere {
     this.current = this.cloneTheme(DEFAULT_THEME);
     this.target = this.cloneTheme(DEFAULT_THEME);
 
+    this.themeLerping = false;
+    this.particlesNeedColorUpdate = true;
     this.initShowroom();
     this.createParticles();
   }
@@ -71,7 +74,7 @@ export class Atmosphere {
   }
 
   createCycloramaGeometry(radiusFloor, cornerRadius) {
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     const radiusWall = radiusFloor + cornerRadius;
     const width = 2 * Math.PI * radiusWall;
     const length = 160;
@@ -392,6 +395,8 @@ export class Atmosphere {
 
   setSection(sectionId) {
     this.target = this.cloneTheme(THEMES[sectionId] ?? DEFAULT_THEME);
+    this.themeLerping = true;
+    this.particlesNeedColorUpdate = true;
   }
 
   restore() {
@@ -454,8 +459,26 @@ export class Atmosphere {
     this.current.background.lerp(this.target.background, blend);
     this.current.glowColor.lerp(this.target.glowColor, blend);
 
-    for (let i = 0; i < 3; i++) {
-      this.current.colors[i].lerp(this.target.colors[i], blend);
+    if (this.themeLerping) {
+      let colorsConverged = true;
+      for (let i = 0; i < 3; i++) {
+        const c1 = this.current.colors[i];
+        const c2 = this.target.colors[i];
+        c1.lerp(c2, blend);
+        const dr = c1.r - c2.r;
+        const dg = c1.g - c2.g;
+        const db = c1.b - c2.b;
+        if (dr * dr + dg * dg + db * db > 0.00001) {
+          colorsConverged = false;
+        }
+      }
+      if (colorsConverged) {
+        for (let i = 0; i < 3; i++) {
+          this.current.colors[i].copy(this.target.colors[i]);
+        }
+        this.themeLerping = false;
+      }
+      this.particlesNeedColorUpdate = true;
     }
 
     if (this.streaksIntensity < this.streaksTarget) {
@@ -494,7 +517,10 @@ export class Atmosphere {
       this.particles.rotation.z = Math.sin(this.time * 0.1) * 0.025;
     }
     if (this.particlesMaterial) {
-      this.updateParticleColors();
+      if (this.particlesNeedColorUpdate) {
+        this.updateParticleColors();
+        this.particlesNeedColorUpdate = false;
+      }
       this.particlesMaterial.opacity = this.streaksIntensity * 0.86;
     }
   }

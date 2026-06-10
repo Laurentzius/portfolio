@@ -6,7 +6,7 @@ const SOCIAL_MODELS = Object.freeze([
   {
     id: 'email',
     label: 'Email',
-    path: '/models/github.glb', // envelope asset
+    path: '/models/email.glb', // envelope asset
     glowColor: new THREE.Color('#ffb86b'),
     position: new THREE.Vector3(1.5, 2.5, -1.4),
     rotation: new THREE.Euler(0.15, -2.1, -0.05),
@@ -33,7 +33,7 @@ const SOCIAL_MODELS = Object.freeze([
   {
     id: 'github',
     label: 'GitHub',
-    path: '/models/email.glb', // octocat asset
+    path: '/models/github.glb', // octocat asset
     glowColor: new THREE.Color('#a0d0ff'),
     position: new THREE.Vector3(-1.4, 2.4, 1.6),
     rotation: new THREE.Euler(0.15, 0.3, 0.05),

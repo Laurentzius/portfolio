@@ -1,3 +1,4 @@
+import { isMobile } from '../utils/device.js';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
@@ -27,7 +28,7 @@ export const LOOSE_CUBIE_FACES = Object.freeze({
 });
 
 export function createCubieMaterials() {
-  const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 
   if (isMobile) {
     // MeshStandardMaterial is significantly cheaper to render on mobile GPUs than MeshPhysicalMaterial
@@ -71,7 +72,7 @@ export function createCubieMaterials() {
 }
 
 export function createCubieGeometries() {
-  const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   // Reduce segment counts from 16 to decrease total triangles in the scene (extremely high vertex count is CPU/GPU intensive)
   const bodySegments = isMobile ? 5 : 8;
   const tileSegments = isMobile ? 3 : 6;

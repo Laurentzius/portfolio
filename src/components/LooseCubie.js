@@ -35,6 +35,8 @@ export class LooseCubie {
 
     this.bodyMaterial = bodyMaterial;
     this.tileMaterial = tileMaterial;
+    this.bodyGeometry = bodyGeometry;
+    this.tileGeometry = tileGeometry;
     this.bodyMesh = createCubieBody(bodyGeometry, this.bodyMaterial, { isLooseCubie: true, parentClass: this });
     this.group.add(this.bodyMesh);
 
@@ -152,5 +154,25 @@ export class LooseCubie {
       }
       return;
     }
+  }
+
+  destroy() {
+    this.scene.remove(this.group);
+    this.group.traverse(child => {
+      if (child.isMesh) {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      }
+    });
+    if (this.bodyGeometry) this.bodyGeometry.dispose();
+    if (this.tileGeometry) this.tileGeometry.dispose();
+    if (this.bodyMaterial) this.bodyMaterial.dispose();
+    if (this.tileMaterial) this.tileMaterial.dispose();
   }
 }
