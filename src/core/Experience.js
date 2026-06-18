@@ -461,26 +461,39 @@ export class Experience {
   }
   updateLogosIntensity() {
     if (!this.rubiksCube) return;
-    const allTiles = [];
-    allTiles.push(...this.rubiksCube.tiles);
-    if (this.looseCubies) {
-      this.looseCubies.forEach(loose => {
-        loose.group.traverse(child => {
-          if (child.isMesh && child !== loose.bodyMesh) {
-            allTiles.push(child);
-          }
-        });
-      });
-    }
-    allTiles.forEach(tile => {
-      if (tile.material && tile.material.emissiveMap) {
-        tile.material.emissiveIntensity = this.logosIntensity || 0.0;
+    // ponytail: rebuild the tile list only when the set changes (cube repaired), not every frame
+    const looseCount = this.looseCubies ? this.looseCubies.length : 0;
+    const signature = this.rubiksCube.tiles.length + ':' + looseCount;
+    if (signature !== this._logoTilesSignature) {
+      this._logoTilesSignature = signature;
+      const allTiles = this.rubiksCube.tiles.slice();
+      if (this.looseCubies) {
+        for (const loose of this.looseCubies) {
+          loose.group.traverse(child => {
+            if (child.isMesh && child !== loose.bodyMesh) {
+              allTiles.push(child);
+            }
+          });
+        }
       }
-    });
+      this._logoTiles = allTiles;
+    }
+    // Only write emissiveIntensity when it actually changed (during the gsap tween).
+    const intensity = this.logosIntensity || 0.0;
+    if (intensity !== this._lastLogosIntensity) {
+      this._lastLogosIntensity = intensity;
+      const tiles = this._logoTiles;
+      for (let i = 0; i < tiles.length; i++) {
+        const mat = tiles[i].material;
+        if (mat && mat.emissiveMap) {
+          mat.emissiveIntensity = intensity;
+        }
+      }
+    }
   }
 
   updateLogosProjection() {
-    if (!this.rubiksCube) return;
+    if (!this.rubiksCube || !this.looseCubies) return;
     const allTiles = [];
     allTiles.push(...this.rubiksCube.tiles);
     this.looseCubies.forEach(loose => {
@@ -636,6 +649,9 @@ export class Experience {
     }
     if (this.lighting && this.lighting.destroy) {
       this.lighting.destroy();
+    }
+    if (this.audioEngine && this.audioEngine.destroy) {
+      this.audioEngine.destroy();
     }
     this.renderer.dispose();
   }

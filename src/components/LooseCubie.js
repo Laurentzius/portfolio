@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 import { createCubieBody, createCubieGeometries, createCubieMaterials, createCubieTile, CUBIE_VISUAL, LOOSE_CUBIE_FACES } from './CubieVisuals.js';
+// ponytail: module-scoped scratch for onDrag — only one loose cubie drags at a time
+const _dragIntersection = new THREE.Vector3();
+const _dragViewDir = new THREE.Vector3();
+const _dragTargetPos = new THREE.Vector3();
+const _dragNextPos = new THREE.Vector3();
+const _dragPosDelta = new THREE.Vector3();
+const _dragRotAxis = new THREE.Vector3();
 
 export class LooseCubie {
   constructor(scene, camera, type = 'corner', initialPos, initialRot) {
@@ -68,34 +75,30 @@ export class LooseCubie {
   onDrag(raycaster) {
     if (!this.isDragging) return;
 
-    const intersection = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(this.dragPlane, intersection)) {
-      const viewDir = new THREE.Vector3();
-      this.camera.getWorldDirection(viewDir);
+    if (raycaster.ray.intersectPlane(this.dragPlane, _dragIntersection)) {
+      this.camera.getWorldDirection(_dragViewDir);
 
-      const targetPosition = intersection.clone()
+      _dragTargetPos.copy(_dragIntersection)
         .add(this.grabOffset)
-        .addScaledVector(viewDir, this.dragDistanceOffset);
+        .addScaledVector(_dragViewDir, this.dragDistanceOffset);
 
       // Lerp position to make it feel heavy/smooth
-      const nextPos = this.group.position.clone().lerp(targetPosition, 0.25);
-      const posDelta = nextPos.clone().sub(this.group.position);
+      _dragNextPos.copy(this.group.position).lerp(_dragTargetPos, 0.25);
+      _dragPosDelta.copy(_dragNextPos).sub(this.group.position);
 
       // Estimate real-time velocity for throwing (60 FPS scale factor)
-      this.velocity.copy(posDelta).multiplyScalar(60);
+      this.velocity.copy(_dragPosDelta).multiplyScalar(60);
 
       // Rotate physical piece while dragging to feel like it rolls/spins in-hand
-      const cameraDir = new THREE.Vector3();
-      this.camera.getWorldDirection(cameraDir);
-      const rotAxis = new THREE.Vector3().crossVectors(posDelta, cameraDir).normalize();
-      const rotAngle = posDelta.length() * 2.2;
+      _dragRotAxis.crossVectors(_dragPosDelta, _dragViewDir).normalize();
+      const rotAngle = _dragPosDelta.length() * 2.2;
       
-      if (rotAngle > 0.0001 && rotAxis.lengthSq() > 0.5) {
-        this.group.rotateOnWorldAxis(rotAxis, rotAngle);
-        this.angularVelocity.copy(rotAxis).multiplyScalar(rotAngle * 60);
+      if (rotAngle > 0.0001 && _dragRotAxis.lengthSq() > 0.5) {
+        this.group.rotateOnWorldAxis(_dragRotAxis, rotAngle);
+        this.angularVelocity.copy(_dragRotAxis).multiplyScalar(rotAngle * 60);
       }
 
-      this.group.position.copy(nextPos);
+      this.group.position.copy(_dragNextPos);
     }
   }
 

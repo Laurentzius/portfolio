@@ -132,10 +132,10 @@ export class InteractionManager {
       if (socialHit) isHoveringInteractable = true;
     }
 
-    if (!isHoveringInteractable && this.exp.rubiksCube) {
-      const intersects = this.raycaster.intersectObjects(this.exp.rubiksCube.cubeGroup.children, true);
-      const tileHit = intersects.find(intersect => intersect.object.userData.isTile);
-      if (tileHit) isHoveringInteractable = true;
+    if (!isHoveringInteractable && this.exp.rubiksCube && this.exp.rubiksCube.tiles.length > 0) {
+      // ponytail: raycast the flat tiles array instead of recursing cubeGroup (gap-glow, slots, flashes)
+      const intersects = this.raycaster.intersectObjects(this.exp.rubiksCube.tiles, false);
+      if (intersects.length > 0) isHoveringInteractable = true;
     }
 
     if (!isHoveringInteractable && this.exp.looseCubies && this.exp.looseCubies.length > 0) {

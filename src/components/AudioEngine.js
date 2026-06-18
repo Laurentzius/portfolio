@@ -97,5 +97,11 @@ export class AudioEngine {
       // Catch suspended context audio issues
     }
   }
+  destroy() {
+    if (this.ctx) {
+      this.ctx.close().catch(() => {});
+      this.ctx = null;
+    }
+  }
 
 }

@@ -43,6 +43,7 @@ export class RubiksCube {
     this.mouseStart = new THREE.Vector2();
     this.mouseCurrent = new THREE.Vector2();
     this.mouseDragStart = new THREE.Vector2();
+    this._dragScratch = new THREE.Vector2();
     
     // Slice rotation state
     this.activeRotationAxis = null; // THREE.Vector3
@@ -258,12 +259,14 @@ export class RubiksCube {
     this.tiles.push(tileMesh);
   }
 
-  getMousePosition(e) {
+  getMousePosition(e, target) {
     const rect = this.domElement.getBoundingClientRect();
-    return new THREE.Vector2(
+    const out = target || new THREE.Vector2();
+    out.set(
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1
     );
+    return out;
   }
 
   onPointerDown(e) {
@@ -295,7 +298,7 @@ export class RubiksCube {
 
     if (this.isAnimating || this.animationQueue.length > 0) return;
 
-    this.mouseStart.copy(this.getMousePosition(e));
+    this.getMousePosition(e, this.mouseStart);
     this.mouseCurrent.copy(this.mouseStart);
 
     const raycaster = new THREE.Raycaster();
@@ -332,8 +335,8 @@ export class RubiksCube {
     if (this.isLocked) return;
     if (!this.isDragging) return;
 
-    this.mouseCurrent.copy(this.getMousePosition(e));
-    const dragVector = this.mouseCurrent.clone().sub(this.mouseStart);
+    this.getMousePosition(e, this.mouseCurrent);
+    const dragVector = this._dragScratch.copy(this.mouseCurrent).sub(this.mouseStart);
     
     if (!this.dragStarted) {
       const rect = this.domElement.getBoundingClientRect();
@@ -436,7 +439,7 @@ export class RubiksCube {
     const rect = this.domElement.getBoundingClientRect();
     const aspect = rect.width / rect.height;
     
-    const dragVector = new THREE.Vector2(
+    const dragVector = this._dragScratch.set(
       (this.mouseCurrent.x - this.mouseDragStart.x) * aspect,
       (this.mouseCurrent.y - this.mouseDragStart.y)
     );
@@ -663,7 +666,7 @@ export class RubiksCube {
       this.setRotationGroupAngle(currentAngle);
 
       if (progress < 1.0) {
-        requestAnimationFrame(animateStep);
+        this.animateFrameId = requestAnimationFrame(animateStep);
       } else {
         this.setRotationGroupAngle(targetAngle);
         
@@ -676,10 +679,11 @@ export class RubiksCube {
       }
     };
 
-    requestAnimationFrame(animateStep);
+    this.animateFrameId = requestAnimationFrame(animateStep);
   }
 
   destroy() {
+    cancelAnimationFrame(this.animateFrameId);
     if (this.gapGlowGroup) {
       this.cubeGroup.remove(this.gapGlowGroup);
       this.gapGlowGroup.traverse((object) => {
