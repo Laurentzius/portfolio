@@ -74,6 +74,11 @@ export class SocialModels {
     this.items = [];
     this.disposables = [];
     this.visible = false;
+    this.warming = false;
+    this.settledCount = 0;
+    this.ready = new Promise(resolve => {
+      this.resolveReady = resolve;
+    });
     this.groupOpacity = 0;
     this.raycastTargets = [];
     this.group.visible = false;
@@ -90,9 +95,15 @@ export class SocialModels {
   loadModel(config) {
     this.loader.load(
       config.path,
-      gltf => this.addModel(config, gltf.scene),
+      gltf => {
+        this.addModel(config, gltf.scene);
+        this.finishLoading();
+      },
       undefined,
-      error => console.warn(`Could not load ${config.label} model`, error),
+      error => {
+        console.warn(`Could not load ${config.label} model`, error);
+        this.finishLoading();
+      },
     );
   }
 
@@ -124,15 +135,55 @@ export class SocialModels {
       isHovered: false,
     });
 
-    if (this.items.length === SOCIAL_MODELS.length) {
-      if (this.exp && this.exp.renderer && this.exp.camera) {
-        if (typeof this.exp.renderer.compileAsync === 'function') {
-          this.exp.renderer.compileAsync(this.group, this.exp.camera)
-            .catch(err => console.warn('Asynchronous compilation of social models failed', err));
-        } else {
-          this.exp.renderer.compile(this.group, this.exp.camera);
-        }
-      }
+  }
+
+  finishLoading() {
+    this.settledCount++;
+    if (this.settledCount !== SOCIAL_MODELS.length) return;
+    if (this.items.length > 0) {
+      this.compileModels();
+    } else {
+      this.resolveReady();
+    }
+  }
+
+  compileModels() {
+    if (!this.exp || !this.exp.renderer || !this.exp.camera) {
+      this.resolveReady();
+      return;
+    }
+
+    const wasVisible = this.group.visible;
+    const frustumStates = [];
+    this.warming = true;
+    this.group.visible = true;
+    this.group.traverse(child => {
+      if (!child.isMesh) return;
+      frustumStates.push([child, child.frustumCulled]);
+      child.frustumCulled = false;
+    });
+
+    const done = () => {
+      this.exp.renderer.render(this.exp.scene, this.exp.camera);
+      this.exp.lighting?.cubeCamera?.update(this.exp.renderer, this.exp.scene);
+      frustumStates.forEach(([child, frustumCulled]) => {
+        child.frustumCulled = frustumCulled;
+      });
+      this.group.visible = wasVisible;
+      this.warming = false;
+      this.resolveReady();
+    };
+
+    if (typeof this.exp.renderer.compileAsync === 'function') {
+      this.exp.renderer.compileAsync(this.group, this.exp.camera)
+        .then(done)
+        .catch(err => {
+          console.warn('Asynchronous compilation of social models failed', err);
+          done();
+        });
+    } else {
+      this.exp.renderer.compile(this.group, this.exp.camera);
+      done();
     }
   }
 
@@ -169,7 +220,7 @@ export class SocialModels {
         return mat;
       });
       child.material = Array.isArray(child.material) ? cloned : cloned[0];
-      child.castShadow = true;
+      child.castShadow = false;
       child.receiveShadow = true;
     });
     return out;
@@ -213,6 +264,7 @@ export class SocialModels {
   }
 
   update(dt) {
+    if (this.warming) return;
     // Smooth group fade in/out
     const target = this.visible ? 1 : 0;
     this.groupOpacity += (target - this.groupOpacity) * Math.min(1, GROUP_FADE_SPEED * dt);

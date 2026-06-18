@@ -215,6 +215,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         const { Experience } = await import('../core/Experience.js');
         const experience = new Experience('webgl');
         window.experience = experience;
+        await experience.socialModels?.ready;
         
         // Safety check if already restored
         if (experience.repair?.repairedCount === 3) {
