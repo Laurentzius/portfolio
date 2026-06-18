@@ -27,6 +27,7 @@ const SOCIAL_MODELS = Object.freeze([
     path: '/models/telegram.glb',
     glowColor: new THREE.Color('#4fc3f7'),
     position: new THREE.Vector3(-0.3, 3.1, 0.85),
+    url: 'https://t.me/hakon_dev',
     rotation: new THREE.Euler(0.08, 0.14, -0.03),
     floatPhase: Math.PI,
   },
@@ -35,6 +36,7 @@ const SOCIAL_MODELS = Object.freeze([
     label: 'GitHub',
     path: '/models/github.glb', // octocat asset
     glowColor: new THREE.Color('#a0d0ff'),
+    url: 'https://github.com/Laurentzius',
     position: new THREE.Vector3(-1.4, 2.4, 1.6),
     rotation: new THREE.Euler(0.15, 0.3, 0.05),
     floatPhase: Math.PI * 1.5,
@@ -60,6 +62,8 @@ const GROUP_FADE_SPEED = 3.0;
 
 const _baseColor = new THREE.Color(0x111111); // Very dark chrome base color to blend into the composition
 const _tmpColor = new THREE.Color();
+const HOVER_LOOK_YAW = 0.22;
+const HOVER_LOOK_PITCH = 0.12;
 
 export class SocialModels {
   constructor(experience) {
@@ -114,6 +118,7 @@ export class SocialModels {
     root.rotation.copy(config.rotation);
     root.userData.socialConfig = config;
     root.userData.baseY = config.position.y;
+    root.userData.baseRotX = config.rotation.x;
     root.userData.baseRotY = config.rotation.y;
     root.userData.baseRotZ = config.rotation.z;
     root.add(model);
@@ -133,6 +138,8 @@ export class SocialModels {
       root, model, hitTarget, materials, config, pointLight,
       hoverT: 0,
       isHovered: false,
+      hoverMouseX: 0,
+      hoverMouseY: 0,
     });
 
   }
@@ -251,10 +258,19 @@ export class SocialModels {
     });
   }
 
-  setHover(root) {
+  setHover(root, mouse) {
     for (const item of this.items) {
       item.isHovered = item.root === root;
+      if (item.isHovered && mouse) {
+        item.hoverMouseX = mouse.x;
+        item.hoverMouseY = mouse.y;
+      }
     }
+  }
+  
+  open(root) {
+    const item = this.items.find(entry => entry.root === root);
+    if (item?.config.url) window.open(item.config.url, '_blank', 'noopener,noreferrer');
   }
 
   setVisible(visible) {
@@ -284,15 +300,15 @@ export class SocialModels {
       const bobY = Math.sin(this.elapsed * FLOAT_BOB_SPEED + phase) * FLOAT_BOB_AMPLITUDE;
       const tiltY = Math.sin(this.elapsed * FLOAT_TILT_SPEED + phase * 0.7) * FLOAT_TILT_AMPLITUDE;
       const tiltZ = Math.cos(this.elapsed * FLOAT_TILT_SPEED * 0.8 + phase) * FLOAT_TILT_AMPLITUDE * 0.5;
-
       root.position.y = root.userData.baseY + bobY;
-      root.rotation.y = root.userData.baseRotY + tiltY;
-      root.rotation.z = root.userData.baseRotZ + tiltZ;
 
-      // --- Smooth hover transition ---
       const hoverTarget = item.isHovered ? 1 : 0;
       item.hoverT += (hoverTarget - item.hoverT) * Math.min(1, HOVER_LERP_SPEED * dt);
       const t = item.hoverT;
+      root.rotation.x = root.userData.baseRotX + item.hoverMouseY * HOVER_LOOK_PITCH * t;
+      root.rotation.y = root.userData.baseRotY + tiltY + item.hoverMouseX * HOVER_LOOK_YAW * t;
+      root.rotation.z = root.userData.baseRotZ + tiltZ;
+
       const op = this.groupOpacity;
 
       // Scale: base → pop

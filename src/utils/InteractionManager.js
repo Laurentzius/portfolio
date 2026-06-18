@@ -128,7 +128,7 @@ export class InteractionManager {
 
     if (this.exp.socialModels?.visible) {
       const socialHit = this.exp.socialModels.hitTest(this.raycaster);
-      this.exp.socialModels.setHover(socialHit?.object.userData.socialRoot ?? null);
+      this.exp.socialModels.setHover(socialHit?.object.userData.socialRoot ?? null, this.mouse);
       if (socialHit) isHoveringInteractable = true;
     }
 
@@ -158,6 +158,14 @@ export class InteractionManager {
     if (isQuickClick) {
       this.updateMouseCoords(e);
       this.raycaster.setFromCamera(this.mouse, this.exp.camera);
+      if (this.exp.socialModels?.visible) {
+        const socialHit = this.exp.socialModels.hitTest(this.raycaster);
+        if (socialHit) {
+          this.exp.socialModels.open(socialHit.object.userData.socialRoot);
+          this.resetInteractionFlags();
+          return;
+        }
+      }
 
 
 
