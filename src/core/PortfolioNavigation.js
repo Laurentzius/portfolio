@@ -1,3 +1,5 @@
+import { t_ } from '../utils/i18n.js';
+
 const FACE_TO_SECTION = Object.freeze({
   F: 'welcome',
   U: 'about',
@@ -6,10 +8,6 @@ const FACE_TO_SECTION = Object.freeze({
   L: 'contact',
   D: 'welcome',
 });
-
-const COMPROMISED_WELCOME = "SYSTEM STATUS: DATABASE COMPROMISED / CUBE FRAGMENTED\n\nPlease drag the three floating pieces back into their slots on the main cube to restore database integrity and unlock navigation.";
-
-const RESTORED_WELCOME = "Welcome to my spatial workshop. I combine WebGL, 3D physics, and SOLID architecture to build immersive digital art and high-performance interactive interfaces.\n\nUse the mouse to explore the room. Click on the central tiles of the Rubik's Cube faces or play with the scattered pieces on the floor to navigate the portfolio pages.";
 
 export class PortfolioNavigation {
   constructor(glassBoard, audioEngine) {
@@ -44,17 +42,18 @@ export class PortfolioNavigation {
 
   showCompromisedIntro() {
     if (this.glassBoard) {
-      this.glassBoard.setWelcomeBody(COMPROMISED_WELCOME);
+      this.glassBoard.setWelcomeBody(t_('navIntro.compromised'), 'compromised');
     }
   }
 
   showRestoredIntro() {
     if (this.glassBoard) {
-      this.glassBoard.setWelcomeBody(RESTORED_WELCOME);
+      this.glassBoard.setWelcomeBody(t_('navIntro.restored'), 'restored');
       this.glassBoard.show();
     }
     this.showSection('welcome');
   }
+
 
   getCubeStateSection(cubies) {
     let misplacedCount = 0;

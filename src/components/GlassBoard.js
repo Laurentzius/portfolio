@@ -1,4 +1,5 @@
 import { isMobile } from '../utils/device.js';
+import { t_, onLocaleChange } from '../utils/i18n.js';
 
 export class GlassBoard {
   constructor(scene, camera) {
@@ -7,65 +8,16 @@ export class GlassBoard {
     this.isMobile = isMobile;
     this.currentSection = 'welcome';
     this.repairProgress = { repaired: 0, total: 3 };
+    this.welcomeBodyKey = null; // 'compromised' | 'restored' | null
 
-    this.portfolioData = {
-      welcome: {
-        eyebrow: '00 / PORTFOLIO',
-        title: 'HAKON',
-        subtitle: 'FULLSTACK / AI FIRST ENGINEER',
-        body: '',
-        footer: 'CLICK A FACE OR PICK A SECTION'
-      },
-      about: {
-        eyebrow: '01 / ABOUT',
-        title: 'TACTILE WEB',
-        subtitle: 'DESIGNING INTERACTIONS',
-        body: 'Frontend developer focused on creative coding, WebGL, physics-driven UI, and premium motion.',
-        footer: 'CUBE FACE: TOP'
-      },
-      skills: {
-        eyebrow: '02 / STACK',
-        title: 'GRAPHICS + UI',
-        subtitle: 'THREE.JS / REACT / ASTRO',
-        body: 'WebGL, GLSL, Three.js, React, TypeScript, audio systems, procedural animation.',
-        footer: 'CUBE FACE: RIGHT'
-      },
-      experience: {
-        eyebrow: '03 / WORK',
-        title: 'CASE ORBIT',
-        subtitle: 'VOXEL / SHADER / AUDIO',
-        body: '[01] Voxel terrain engine\\n[02] GLSL raymarch playground\\n[03] Spatial synth interface',
-        footer: 'WORK CAROUSEL / CAMERA ORBIT'
-      },
-      contact: {
-        eyebrow: '04 / CONTACT',
-        title: 'SIGNAL MODE',
-        subtitle: 'TRANSMISSION CHANNELS',
-        body: '',
-        footer: 'READY TO RECEIVE'
-      },
-      voxel: {
-        eyebrow: 'CASE / VOXEL',
-        title: 'VOXEL ENGINE',
-        subtitle: 'REAL-TIME BROWSER ENGINE',
-        body: 'Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.',
-        footer: 'FLOOR PIECE / CORNER'
-      },
-      shader: {
-        eyebrow: 'CASE / SHADER',
-        title: 'RAYMARCHER',
-        subtitle: 'SDF RENDERER PLAYGROUND',
-        body: 'Morphing metallic fields, soft shadows, and ambient occlusion in custom GLSL.',
-        footer: 'FLOOR PIECE / EDGE'
-      },
-      audio: {
-        eyebrow: 'CASE / AUDIO',
-        title: 'SPATIAL SYNTH',
-        subtitle: 'WEB AUDIO API',
-        body: 'FM synthesis, LFOs, and gain envelopes driven by canvas interactions.',
-        footer: 'FLOOR PIECE / CENTER'
+    this.portfolioData = this._buildPortfolioData();
+    this._localeCleanup = onLocaleChange(() => {
+      this.portfolioData = this._buildPortfolioData();
+      if (this.welcomeBodyKey) {
+        this.portfolioData.welcome.body = t_(`navIntro.${this.welcomeBodyKey}`);
       }
-    };
+      this.redrawCanvas();
+    });
 
     // Dummy group property to prevent errors if external code references it
     this.group = {
@@ -86,8 +38,22 @@ export class GlassBoard {
     this.redrawCanvas();
   }
 
-  setWelcomeBody(body) {
+  _buildPortfolioData() {
+    return {
+      welcome:    { ...t_('portfolio.welcome') },
+      about:      { ...t_('portfolio.about') },
+      skills:     { ...t_('portfolio.skills') },
+      experience: { ...t_('portfolio.experience') },
+      contact:    { ...t_('portfolio.contact') },
+      voxel:      { ...t_('portfolio.voxel') },
+      shader:     { ...t_('portfolio.shader') },
+      audio:      { ...t_('portfolio.audio') },
+    };
+  }
+
+  setWelcomeBody(body, key) {
     this.portfolioData.welcome.body = body;
+    this.welcomeBodyKey = key || null;
     if (this.currentSection === 'welcome') {
       this.redrawCanvas();
     }
@@ -142,6 +108,6 @@ export class GlassBoard {
   }
 
   destroy() {
-    // No-op
+    this._localeCleanup?.();
   }
 }

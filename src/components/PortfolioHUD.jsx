@@ -2,21 +2,21 @@ import { checkIsMobileLayout } from '../utils/device.js';
 import React from 'react';
 import { gsap } from 'gsap';
 import TargetCursor from './TargetCursor.jsx';
+import { getLocale, toggleLocale, onLocaleChange, t_ } from '../utils/i18n.js';
 
-const NAV_SECTIONS = [
-  { id: 'welcome', label: 'HOME' },
-  { id: 'about', label: 'ABOUT' },
-  { id: 'skills', label: 'SKILLS' },
-  { id: 'experience', label: 'WORK' },
-  { id: 'contact', label: 'CONTACT' },
-];
+const NAV_IDS = ['welcome', 'about', 'skills', 'experience', 'contact'];
 
 export default function PortfolioHUD() {
   const [isRestored, setIsRestored] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const [lockedHintActive, setLockedHintActive] = React.useState(false);
   const [sectionData, setSectionData] = React.useState(null);
+  const [locale, setLocaleState] = React.useState(getLocale);
   const containerRef = React.useRef(null);
+
+  // Subscribe to locale changes
+  React.useEffect(() => onLocaleChange(setLocaleState), []);
+
   React.useEffect(() => {
     const handleRestored = () => {
       setIsRestored(true);
@@ -55,7 +55,7 @@ export default function PortfolioHUD() {
       window.removeEventListener('portfolio:section-data', handleSectionData);
       window.removeEventListener('portfolio:locked-hint', handleLockedHint);
       window.removeEventListener('resize', checkMobile);
-      if (hintTimeout) clearTimeout(hintTimeout);
+      clearTimeout(hintTimeout);
     };
   }, []);
 
@@ -65,7 +65,6 @@ export default function PortfolioHUD() {
     if (!isRestored) return;
 
     const ctx = gsap.context(() => {
-      // 1. Animate header-hud
       gsap.fromTo('.branding',
         { opacity: 0, y: -25 },
         { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.1 }
@@ -75,13 +74,11 @@ export default function PortfolioHUD() {
         { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.25 }
       );
 
-      // 2. Animate navigation buttons
       gsap.fromTo('.portfolio-nav button',
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.4 }
       );
 
-      // 3. Animate mobile portfolio card if it is rendered
       if (shouldShowCard) {
         gsap.fromTo('.mobile-portfolio-card',
           { opacity: 0, scale: 0.9, y: 15 },
@@ -97,30 +94,29 @@ export default function PortfolioHUD() {
     if (!sectionData) return '';
     const sectionId = sectionData.sectionId;
     if (sectionId === 'welcome') {
-      return isRestored
-        ? "HAKON — Fullstack / AI First Engineer"
-        : "Database Compromised — Tap pieces to restore";
+      return isRestored ? t_('hud.restored') : t_('hud.compromised');
     }
-    // Map section IDs to minimal one-liners
     const maps = {
-      about: "ABOUT — Designing tactile interactions",
-      skills: "STACK — WebGL, React, Astro",
-      experience: "WORK — Voxel, Shader, Audio Projects",
+      about: t_('hud.about'),
+      skills: t_('hud.skills'),
+      experience: t_('hud.experience'),
     };
     return maps[sectionId] || `${sectionData.data.title} — ${sectionData.data.subtitle}`;
   };
 
+  const navLabels = t_('nav');
+
   return (
     <>
       <div className={`locked-hint-toast ${lockedHintActive ? 'locked-hint-toast--visible' : ''}`}>
-        RESTORE MISSING CUBIES FIRST
+        {t_('hud.lockedHint')}
       </div>
       <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
       <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />
 
       <header className="header-hud">
-        <div className="branding">XAKON.DEV // CORE</div>
-        <div className="subtitle">SYSTEM // ONLINE</div>
+        <div className="branding">{t_('branding')}</div>
+        <div className="subtitle">{t_('subtitle')}</div>
       </header>
 
       {shouldShowCard && (
@@ -130,14 +126,24 @@ export default function PortfolioHUD() {
       )}
 
       <nav className="portfolio-nav" aria-label="Portfolio sections">
-        {NAV_SECTIONS.map(({ id, label }) => (
+        {NAV_IDS.map((id) => (
           <button type="button" className="cursor-target" data-section={id} key={id}>
-            <span className="nav-label-text">{label}</span>
+            <span className="nav-label-text">{navLabels[id] || id.toUpperCase()}</span>
           </button>
         ))}
       </nav>
+
+      {isRestored && (
+        <button
+          type="button"
+          className="lang-toggle cursor-target"
+          onClick={toggleLocale}
+          aria-label={locale === 'en' ? 'Switch to Russian' : 'Переключить на английский'}
+        >
+          {t_('langLabel')}
+        </button>
+      )}
     </div>
     </>
   );
 }
-

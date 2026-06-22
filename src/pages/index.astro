@@ -10,7 +10,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
   <!-- Loading Screen -->
   <div id="loader" class="loader-container">
     <div class="loader-spinner"></div>
-    <p class="loader-text">Инициализация 3D...</p>
+    <p class="loader-text" data-i18n="loader">Initializing 3D…</p>
   </div>
 
   <!-- 3D Canvas -->
@@ -19,13 +19,13 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
   <!-- Unified 2D Section Typography Overlays -->
   <div id="section-titles">
     <!-- Welcome (Home) -->
-    <div id="title-welcome" class="section-title-container">
+    <div id="title-welcome" class="section-title-container" data-section="welcome">
       <h1 class="section-title-main">XAKON.DEV</h1>
       <div class="section-title-sub">FULLSTACK / AI FIRST ENGINEER</div>
     </div>
     
     <!-- About -->
-    <div id="title-about" class="section-title-container">
+    <div id="title-about" class="section-title-container" data-section="about">
       <div class="section-eyebrow">01 / ABOUT</div>
       <h2 class="section-title-main">TACTILE WEB</h2>
       <div class="section-title-sub">DESIGNING INTERACTIONS</div>
@@ -33,7 +33,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     </div>
     
     <!-- Skills -->
-    <div id="title-skills" class="section-title-container">
+    <div id="title-skills" class="section-title-container" data-section="skills">
       <div class="section-eyebrow">02 / STACK</div>
       <h2 class="section-title-main">GRAPHICS + UI</h2>
       <div class="section-title-sub">THREE.JS / REACT / ASTRO</div>
@@ -41,7 +41,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     </div>
     
     <!-- Experience -->
-    <div id="title-experience" class="section-title-container">
+    <div id="title-experience" class="section-title-container" data-section="experience">
       <div class="section-eyebrow">03 / WORK</div>
       <h2 class="section-title-main">CASE ORBIT</h2>
       <div class="section-title-sub">VOXEL / SHADER / AUDIO</div>
@@ -53,14 +53,14 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     </div>
     
     <!-- Contact -->
-    <div id="title-contact" class="section-title-container">
+    <div id="title-contact" class="section-title-container" data-section="contact">
       <div class="section-eyebrow">04 / CONTACT</div>
       <h2 class="section-title-main">SIGNAL MODE</h2>
       <div class="section-title-sub">TRANSMISSION CHANNELS</div>
     </div>
 
     <!-- Voxel Case Study -->
-    <div id="title-voxel" class="section-title-container">
+    <div id="title-voxel" class="section-title-container" data-section="voxel">
       <div class="section-eyebrow">CASE / VOXEL</div>
       <h2 class="section-title-main">VOXEL ENGINE</h2>
       <div class="section-title-sub">REAL-TIME BROWSER ENGINE</div>
@@ -68,7 +68,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     </div>
 
     <!-- Shader Case Study -->
-    <div id="title-shader" class="section-title-container">
+    <div id="title-shader" class="section-title-container" data-section="shader">
       <div class="section-eyebrow">CASE / SHADER</div>
       <h2 class="section-title-main">RAYMARCHER</h2>
       <div class="section-title-sub">SDF RENDERER PLAYGROUND</div>
@@ -76,7 +76,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     </div>
 
     <!-- Audio Case Study -->
-    <div id="title-audio" class="section-title-container">
+    <div id="title-audio" class="section-title-container" data-section="audio">
       <div class="section-eyebrow">CASE / AUDIO</div>
       <h2 class="section-title-main">SPATIAL SYNTH</h2>
       <div class="section-title-sub">WEB AUDIO API</div>
@@ -89,6 +89,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
 
   <script>
     import { gsap } from 'gsap';
+    import { t_, onLocaleChange } from '../utils/i18n.js';
 
     const loader = document.getElementById('loader');
 
@@ -114,13 +115,54 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       });
     }
 
-    // Split all section titles and subtitles
-    document.querySelectorAll('.section-title-container').forEach(container => {
-      const mainTitle = container.querySelector('.section-title-main');
-      if (mainTitle) splitTextIntoSpans(mainTitle);
-      const subTitle = container.querySelector('.section-title-sub');
-      if (subTitle) splitTextIntoSpans(subTitle);
-    });
+    // Apply i18n translations to all section title overlays
+    function applyI18nToTitles() {
+      document.querySelectorAll('.section-title-container[data-section]').forEach(container => {
+        const sectionId = container.dataset.section;
+        const s = t_(`sections.${sectionId}`);
+        if (!s) return;
+
+        const eyebrow = container.querySelector('.section-eyebrow');
+        if (eyebrow && s.eyebrow) eyebrow.textContent = s.eyebrow;
+
+        const mainTitle = container.querySelector('.section-title-main');
+        if (mainTitle && s.main) mainTitle.textContent = s.main;
+
+        const subTitle = container.querySelector('.section-title-sub');
+        if (subTitle && s.sub) subTitle.textContent = s.sub;
+
+        const desc = container.querySelector('.section-title-desc');
+        if (desc && s.desc) desc.textContent = s.desc;
+
+        if (s.list) {
+          const listItems = container.querySelectorAll('.section-title-list li');
+          listItems.forEach((li, i) => {
+            if (s.list[i]) {
+              // Keep the [01] span prefix, update text
+              const prefix = li.querySelector('span');
+              li.textContent = '';
+              if (prefix) li.appendChild(prefix);
+              li.appendChild(document.createTextNode(' ' + s.list[i]));
+            }
+          });
+        }
+      });
+
+      // Loader text
+      const loaderText = document.querySelector('.loader-text');
+      if (loaderText) loaderText.textContent = t_('loader');
+
+      // Re-split animated titles after text swap
+      document.querySelectorAll('.section-title-container').forEach(container => {
+        const mainTitle = container.querySelector('.section-title-main');
+        if (mainTitle) splitTextIntoSpans(mainTitle);
+        const subTitle = container.querySelector('.section-title-sub');
+        if (subTitle) splitTextIntoSpans(subTitle);
+      });
+    }
+
+    // Initial split
+    applyI18nToTitles();
 
     let isCubeRestored = false;
     let activeSection = 'welcome';
@@ -132,7 +174,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
 
       if (sectionTimelines[sectionId]) sectionTimelines[sectionId].kill();
 
-      // Reset positioning and make container visible
       gsap.set(el, { visibility: 'visible', opacity: 1, y: 0 });
 
       const mainTitle = el.querySelector('.section-title-main');
@@ -144,7 +185,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       const tl = gsap.timeline();
       sectionTimelines[sectionId] = tl;
 
-      // Animating title characters
       const mainChars = mainTitle?.querySelectorAll('.char-inner');
       if (mainChars && mainChars.length > 0) {
         tl.fromTo(mainChars, 
@@ -153,7 +193,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         );
       }
 
-      // Animating subtitle characters
       const subChars = subTitle?.querySelectorAll('.char-inner');
       if (subChars && subChars.length > 0) {
         tl.fromTo(subChars, 
@@ -163,7 +202,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         );
       }
 
-      // Animating eyebrow
       if (eyebrow) {
         tl.fromTo(eyebrow,
           { opacity: 0, y: -10, letterSpacing: '8px' },
@@ -172,7 +210,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         );
       }
 
-      // Animating description
       if (desc) {
         tl.fromTo(desc, 
           { opacity: 0, y: 15 }, 
@@ -181,7 +218,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         );
       }
 
-      // Animating list items
       if (listItems && listItems.length > 0) {
         tl.fromTo(listItems,
           { opacity: 0, y: 15 },
@@ -210,6 +246,19 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       });
     };
 
+    // On locale change: re-apply text, re-split spans, re-show active section
+    window.addEventListener('i18n:change', () => {
+      applyI18nToTitles();
+      if (isCubeRestored) {
+        // Kill any running timeline on the active section first
+        if (sectionTimelines[activeSection]) sectionTimelines[activeSection].kill();
+        // Reset the active section element state so re-show animates cleanly
+        const el = document.getElementById(`title-${activeSection}`);
+        if (el) gsap.set(el, { visibility: 'hidden', opacity: 0 });
+        showSectionTitle(activeSection);
+      }
+    });
+
     const initExperience = async () => {
       try {
         const { Experience } = await import('../core/Experience.js');
@@ -217,7 +266,6 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         window.experience = experience;
         await experience.socialModels?.ready;
         
-        // Safety check if already restored
         if (experience.repair?.repairedCount === 3) {
           isCubeRestored = true;
           document.body.classList.add('cube-is-restored');

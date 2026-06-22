@@ -442,6 +442,48 @@ canvas:active {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Language Toggle Button */
+.lang-toggle {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: opacity 0.3s ease, background 0.2s ease, color 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud-container--visible .lang-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 768px) {
+  .lang-toggle {
+    bottom: auto;
+    top: 12px;
+    right: 12px;
+    left: auto;
+  }
+}
+
 /* Hide default/native cursor globally when cube is restored */
 body.cube-is-restored,
 body.cube-is-restored canvas,
