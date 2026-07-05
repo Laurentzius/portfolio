@@ -298,9 +298,7 @@ canvas:active {
 
 @media (max-width: 768px) {
   .mobile-portfolio-card {
-    bottom: 80px;
-    padding: 6px 14px;
-    font-size: 12px;
+    display: none; /* ponytail: badge-pill removed per request */
   }
 }
 

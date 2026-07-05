@@ -75,7 +75,7 @@ export default function PortfolioHUD() {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [isRestored, shouldShowCard]);
+  }, [isRestored]);
 
   const getMinimalText = () => {
     if (!sectionData) return '';
