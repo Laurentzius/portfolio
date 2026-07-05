@@ -96,7 +96,7 @@ export default function PortfolioHUD() {
   return (
     <>
       <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
-      <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />
+      {!isMobile && <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />}
 
       <header className="header-hud">
         <div className="branding">{t_('branding')}</div>
