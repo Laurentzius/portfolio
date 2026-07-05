@@ -113,9 +113,6 @@ export class RepairNarrative {
         slot.targetOpacity = Math.max(slot.targetOpacity, 0.45);
       }
     });
-    if (this.glassBoard) {
-      this.glassBoard.showLockedHint();
-    }
   }
 
   markRepaired(targetPos, repairedCount) {

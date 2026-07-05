@@ -9,7 +9,6 @@ const NAV_IDS = ['welcome', 'about', 'skills', 'experience', 'contact'];
 export default function PortfolioHUD() {
   const [isRestored, setIsRestored] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
-  const [lockedHintActive, setLockedHintActive] = React.useState(false);
   const [sectionData, setSectionData] = React.useState(null);
   const [locale, setLocaleState] = React.useState(getLocale);
   const containerRef = React.useRef(null);
@@ -40,22 +39,10 @@ export default function PortfolioHUD() {
       setIsRestored(true);
       document.body.classList.add('cube-is-restored');
     }
-    let hintTimeout = null;
-    const handleLockedHint = () => {
-      setLockedHintActive(true);
-      if (hintTimeout) clearTimeout(hintTimeout);
-      hintTimeout = setTimeout(() => {
-        setLockedHintActive(false);
-      }, 1200);
-    };
-    window.addEventListener('portfolio:locked-hint', handleLockedHint);
 
     return () => {
       window.removeEventListener('cube-restored', handleRestored);
       window.removeEventListener('portfolio:section-data', handleSectionData);
-      window.removeEventListener('portfolio:locked-hint', handleLockedHint);
-      window.removeEventListener('resize', checkMobile);
-      clearTimeout(hintTimeout);
     };
   }, []);
 
@@ -108,9 +95,6 @@ export default function PortfolioHUD() {
 
   return (
     <>
-      <div className={`locked-hint-toast ${lockedHintActive ? 'locked-hint-toast--visible' : ''}`}>
-        {t_('hud.lockedHint')}
-      </div>
       <div ref={containerRef} className={`hud-container ${isRestored ? 'hud-container--visible' : 'hud-container--hidden'}`}>
       <TargetCursor targetSelector=".cursor-target" spinDuration={2} hoverDuration={0.2} isRestored={isRestored} />
 

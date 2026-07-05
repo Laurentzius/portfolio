@@ -5,7 +5,7 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
 
 <Layout
   title="Hakon | Fullstack & AI First Engineer Portfolio"
-  description="Interactive 3D WebGL portfolio and spatial Rubik's Cube workshop by Hakon. Exploring creative coding, React, Astro, Three.js, and solid software architecture."
+  description="Interactive 3D Rubik's Cube portfolio by Hakon — AI-first engineer building RAG pipelines, multi-agent assistants, and voice interfaces with Python, Next.js, and Google ADK."
 >
   <!-- Loading Screen -->
   <div id="loader" class="loader-container">
@@ -27,23 +27,24 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
     <!-- About -->
     <div id="title-about" class="section-title-container" data-section="about">
       <div class="section-eyebrow">01 / ABOUT</div>
-      <h2 class="section-title-main">TACTILE WEB</h2>
-      <div class="section-title-sub">DESIGNING INTERACTIONS</div>
-      <p class="section-title-desc">Frontend developer focused on creative coding, WebGL, physics-driven UI, and premium motion.</p>
+      <h2 class="section-title-main">AI-FIRST BUILDS</h2>
+      <div class="section-title-sub">IDEA → PRODUCT, FAST</div>
+      <p class="section-title-desc">Fullstack AI-first engineer. I ship RAG pipelines, multi-agent assistants, and voice interfaces — with AI as the primary tool, not a feature.</p>
+      <a class="cv-link" href="/cv-hakon.pdf" target="_blank" rel="noopener">Download CV ↓</a>
     </div>
     
     <!-- Skills -->
     <div id="title-skills" class="section-title-container" data-section="skills">
       <div class="section-eyebrow">02 / STACK</div>
-      <h2 class="section-title-main">GRAPHICS + UI</h2>
-      <div class="section-title-sub">THREE.JS / REACT / ASTRO</div>
-      <p class="section-title-desc">WebGL, GLSL, Three.js, React, TypeScript, audio systems, procedural animation.</p>
+      <h2 class="section-title-main">AI STACK</h2>
+      <div class="section-title-sub">PYTHON / NEXT.JS / ADK</div>
+      <p class="section-title-desc">Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini &amp; Claude. Multi-agent systems, RAG, voice (ASR/TTS), Langfuse, Docker.</p>
     </div>
     
     <!-- Experience -->
     <div id="title-experience" class="section-title-container" data-section="experience">
-      <div class="section-eyebrow">03 / WORK</div>
-      <h2 class="section-title-main">CASE ORBIT</h2>
+      <div class="section-eyebrow">03 / LAB</div>
+      <h2 class="section-title-main">INTERACTIVE LAB</h2>
       <div class="section-title-sub">VOXEL / SHADER / AUDIO</div>
       <ul class="section-title-list">
         <li><span>[01]</span> Voxel terrain engine</li>
@@ -151,6 +152,9 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       // Loader text
       const loaderText = document.querySelector('.loader-text');
       if (loaderText) loaderText.textContent = t_('loader');
+      // CV download link label (About)
+      const cvLink = document.querySelector('#title-about .cv-link');
+      if (cvLink) cvLink.textContent = t_('cvLabel');
 
       // Re-split animated titles after text swap
       document.querySelectorAll('.section-title-container').forEach(container => {

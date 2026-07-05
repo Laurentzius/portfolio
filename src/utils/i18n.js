@@ -47,9 +47,9 @@ const t = {
     // section titles (index.astro overlays)
     sections: {
       welcome:  { eyebrow: null, main: 'XAKON.DEV', sub: 'FULLSTACK / AI FIRST ENGINEER', desc: null },
-      about:    { eyebrow: '01 / ABOUT', main: 'TACTILE WEB', sub: 'DESIGNING INTERACTIONS', desc: 'Frontend developer focused on creative coding, WebGL, physics-driven UI, and premium motion.' },
-      skills:   { eyebrow: '02 / STACK', main: 'GRAPHICS + UI', sub: 'THREE.JS / REACT / ASTRO', desc: 'WebGL, GLSL, Three.js, React, TypeScript, audio systems, procedural animation.' },
-      experience:{ eyebrow: '03 / WORK', main: 'CASE ORBIT', sub: 'VOXEL / SHADER / AUDIO', list: ['Voxel terrain engine', 'GLSL raymarch playground', 'Spatial synth interface'] },
+      about:    { eyebrow: '01 / ABOUT', main: 'AI-FIRST BUILDS', sub: 'IDEA → PRODUCT, FAST', desc: 'Fullstack AI-first engineer. I ship RAG pipelines, multi-agent assistants, and voice interfaces — with AI as the primary tool, not a feature.' },
+      skills:   { eyebrow: '02 / STACK', main: 'AI STACK', sub: 'PYTHON / NEXT.JS / ADK', desc: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini & Claude. Multi-agent systems, RAG, voice (ASR/TTS), Langfuse, Docker.' },
+      experience:{ eyebrow: '03 / LAB', main: 'INTERACTIVE LAB', sub: 'VOXEL / SHADER / AUDIO', list: ['Voxel terrain engine', 'GLSL raymarch playground', 'Spatial synth interface'] },
       contact:  { eyebrow: '04 / CONTACT', main: 'SIGNAL MODE', sub: 'TRANSMISSION CHANNELS' },
       voxel:    { eyebrow: 'CASE / VOXEL', main: 'VOXEL ENGINE', sub: 'REAL-TIME BROWSER ENGINE', desc: 'Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.' },
       shader:   { eyebrow: 'CASE / SHADER', main: 'RAYMARCHER', sub: 'SDF RENDERER PLAYGROUND', desc: 'Morphing metallic fields, soft shadows, and ambient occlusion in custom GLSL.' },
@@ -59,9 +59,9 @@ const t = {
     // GlassBoard data
     portfolio: {
       welcome:   { eyebrow: '00 / PORTFOLIO', title: 'HAKON', subtitle: 'FULLSTACK / AI FIRST ENGINEER', body: '', footer: 'CLICK A FACE OR PICK A SECTION' },
-      about:     { eyebrow: '01 / ABOUT', title: 'TACTILE WEB', subtitle: 'DESIGNING INTERACTIONS', body: 'Frontend developer focused on creative coding, WebGL, physics-driven UI, and premium motion.', footer: 'CUBE FACE: TOP' },
-      skills:    { eyebrow: '02 / STACK', title: 'GRAPHICS + UI', subtitle: 'THREE.JS / REACT / ASTRO', body: 'WebGL, GLSL, Three.js, React, TypeScript, audio systems, procedural animation.', footer: 'CUBE FACE: RIGHT' },
-      experience:{ eyebrow: '03 / WORK', title: 'CASE ORBIT', subtitle: 'VOXEL / SHADER / AUDIO', body: '[01] Voxel terrain engine\n[02] GLSL raymarch playground\n[03] Spatial synth interface', footer: 'WORK CAROUSEL / CAMERA ORBIT' },
+      about:     { eyebrow: '01 / ABOUT', title: 'AI-FIRST BUILDS', subtitle: 'IDEA → PRODUCT, FAST', body: 'Fullstack AI-first engineer. I ship RAG pipelines, multi-agent assistants, and voice interfaces — with AI as the primary tool, not a feature.', footer: 'CUBE FACE: TOP' },
+      skills:    { eyebrow: '02 / STACK', title: 'AI STACK', subtitle: 'PYTHON / NEXT.JS / ADK', body: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini & Claude. Multi-agent systems, RAG, voice (ASR/TTS), Langfuse, Docker.', footer: 'CUBE FACE: RIGHT' },
+      experience:{ eyebrow: '03 / LAB', title: 'INTERACTIVE LAB', subtitle: 'VOXEL / SHADER / AUDIO', body: '[01] Voxel terrain engine\n[02] GLSL raymarch playground\n[03] Spatial synth interface', footer: 'LIVE EXPERIMENTS / DRAG TO ORBIT' },
       contact:   { eyebrow: '04 / CONTACT', title: 'SIGNAL MODE', subtitle: 'TRANSMISSION CHANNELS', body: '', footer: 'READY TO RECEIVE' },
       voxel:     { eyebrow: 'CASE / VOXEL', title: 'VOXEL ENGINE', subtitle: 'REAL-TIME BROWSER ENGINE', body: 'Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.', footer: 'FLOOR PIECE / CORNER' },
       shader:    { eyebrow: 'CASE / SHADER', title: 'RAYMARCHER', subtitle: 'SDF RENDERER PLAYGROUND', body: 'Morphing metallic fields, soft shadows, and ambient occlusion in custom GLSL.', footer: 'FLOOR PIECE / EDGE' },
@@ -71,21 +71,21 @@ const t = {
     // PortfolioNavigation intro texts
     navIntro: {
       compromised: 'SYSTEM STATUS: DATABASE COMPROMISED / CUBE FRAGMENTED\n\nPlease drag the three floating pieces back into their slots on the main cube to restore database integrity and unlock navigation.',
-      restored: 'Welcome to my spatial workshop. I combine WebGL, 3D physics, and SOLID architecture to build immersive digital art and high-performance interactive interfaces.\n\nUse the mouse to explore the room. Click on the central tiles of the Rubik\'s Cube faces or play with the scattered pieces on the floor to navigate the portfolio pages.',
+      restored: 'Welcome to my spatial workshop. I build AI-first products — RAG systems, multi-agent assistants, and voice interfaces — and ship them fast with AI as the primary tool.\n\nUse the mouse to explore the room. Click on the central tiles of the Rubik\'s Cube faces or play with the scattered pieces on the floor to navigate the portfolio pages.',
     },
 
     // HUD minimal texts
     hud: {
       restored: 'HAKON — Fullstack / AI First Engineer',
       compromised: 'Database Compromised — Tap pieces to restore',
-      about: 'ABOUT — Designing tactile interactions',
-      skills: 'STACK — WebGL, React, Astro',
-      experience: 'WORK — Voxel, Shader, Audio Projects',
-      lockedHint: 'RESTORE MISSING CUBIES FIRST',
+      about: 'ABOUT — Idea to product, fast',
+      skills: 'STACK — Python, Next.js, ADK',
+      experience: 'LAB — Voxel, Shader, Audio',
     },
 
     // lang button
     langLabel: 'RU',
+    cvLabel: 'Download CV ↓',
   },
 
   ru: {
@@ -98,9 +98,9 @@ const t = {
 
     sections: {
       welcome:  { eyebrow: null, main: 'XAKON.DEV', sub: 'ФУЛЛСТЕК / AI FIRST ИНЖЕНЕР', desc: null },
-      about:    { eyebrow: '01 / О СЕБЕ', main: 'ТАКТИЛЬНЫЙ WEB', sub: 'ПРОЕКТИРОВАНИЕ ВЗАИМОДЕЙСТВИЙ', desc: 'Фронтенд-разработчик, увлечённый креативным кодингом, WebGL, физическим UI и премиальным моушном.' },
-      skills:   { eyebrow: '02 / СТЕК', main: 'ГРАФИКА + UI', sub: 'THREE.JS / REACT / ASTRO', desc: 'WebGL, GLSL, Three.js, React, TypeScript, аудиосистемы, процедурная анимация.' },
-      experience:{ eyebrow: '03 / ПРОЕКТЫ', main: 'ОРБИТА КЕЙСОВ', sub: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', list: ['Воксельный движок террейна', 'GLSL playground рэймарчера', 'Пространственный синт-интерфейс'] },
+      about:    { eyebrow: '01 / О СЕБЕ', main: 'AI-FIRST СБОРКА', sub: 'ИДЕЯ → ПРОДУКТ, БЫСТРО', desc: 'Фуллстек AI-first инженер. Запускаю RAG-пайплайны, мультиагентных ассистентов и голосовые интерфейсы — AI как основной инструмент, а не фича.' },
+      skills:   { eyebrow: '02 / СТЕК', main: 'AI СТЕК', sub: 'PYTHON / NEXT.JS / ADK', desc: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini и Claude. Мультиагентные системы, RAG, голос (ASR/TTS), Langfuse, Docker.' },
+      experience:{ eyebrow: '03 / ЛАБ', main: 'ИНТЕРАКТИВНАЯ ЛАБ', sub: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', list: ['Воксельный движок террейна', 'GLSL playground рэймарчера', 'Пространственный синт-интерфейс'] },
       contact:  { eyebrow: '04 / КОНТАКТ', main: 'РЕЖИМ СИГНАЛА', sub: 'КАНАЛЫ ПЕРЕДАЧИ' },
       voxel:    { eyebrow: 'КЕЙС / ВОКСЕЛЬ', main: 'ВОКСЕЛЬНЫЙ ДВИЖОК', sub: 'БРАУЗЕРНЫЙ ДВИЖОК РЕАЛЬНОГО ВРЕМЕНИ', desc: 'Чанковый террейн, динамический occlusion culling, кастомная физика, 60 FPS WebGL рендеринг.' },
       shader:   { eyebrow: 'КЕЙС / ШЕЙДЕР', main: 'РЭЙМАРЧЕР', sub: 'SDF РЕНДЕР PLAYGROUND', desc: 'Морфинг металлических полей, мягкие тени и ambient occlusion на кастомном GLSL.' },
@@ -109,9 +109,9 @@ const t = {
 
     portfolio: {
       welcome:   { eyebrow: '00 / ПОРТФОЛИО', title: 'HAKON', subtitle: 'ФУЛЛСТЕК / AI FIRST ИНЖЕНЕР', body: '', footer: 'НАЖМИТЕ НА ГРАНЬ ИЛИ ВЫБЕРИТЕ РАЗДЕЛ' },
-      about:     { eyebrow: '01 / О СЕБЕ', title: 'ТАКТИЛЬНЫЙ WEB', subtitle: 'ПРОЕКТИРОВАНИЕ ВЗАИМОДЕЙСТВИЙ', body: 'Фронтенд-разработчик, увлечённый креативным кодингом, WebGL, физическим UI и премиальным моушном.', footer: 'ГРАНЬ КУБА: ВЕРХ' },
-      skills:    { eyebrow: '02 / СТЕК', title: 'ГРАФИКА + UI', subtitle: 'THREE.JS / REACT / ASTRO', body: 'WebGL, GLSL, Three.js, React, TypeScript, аудиосистемы, процедурная анимация.', footer: 'ГРАНЬ КУБА: ПРАВО' },
-      experience:{ eyebrow: '03 / ПРОЕКТЫ', title: 'ОРБИТА КЕЙСОВ', subtitle: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', body: '[01] Воксельный движок террейна\n[02] GLSL playground рэймарчера\n[03] Пространственный синт-интерфейс', footer: 'КАРУСЕЛЬ РАБОТ / КАМЕРА ПО ОРБИТЕ' },
+      about:     { eyebrow: '01 / О СЕБЕ', title: 'AI-FIRST СБОРКА', subtitle: 'ИДЕЯ → ПРОДУКТ, БЫСТРО', body: 'Фуллстек AI-first инженер. Запускаю RAG-пайплайны, мультиагентных ассистентов и голосовые интерфейсы — AI как основной инструмент, а не фича.', footer: 'ГРАНЬ КУБА: ВЕРХ' },
+      skills:    { eyebrow: '02 / СТЕК', title: 'AI СТЕК', subtitle: 'PYTHON / NEXT.JS / ADK', body: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini и Claude. Мультиагентные системы, RAG, голос (ASR/TTS), Langfuse, Docker.', footer: 'ГРАНЬ КУБА: ПРАВО' },
+      experience:{ eyebrow: '03 / ЛАБ', title: 'ИНТЕРАКТИВНАЯ ЛАБ', subtitle: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', body: '[01] Воксельный движок террейна\n[02] GLSL playground рэймарчера\n[03] Пространственный синт-интерфейс', footer: 'ЖИВЫЕ ЭКСПЕРИМЕНТЫ / КРУТИТЕ КУБ' },
       contact:   { eyebrow: '04 / КОНТАКТ', title: 'РЕЖИМ СИГНАЛА', subtitle: 'КАНАЛЫ ПЕРЕДАЧИ', body: '', footer: 'ГОТОВ К ПРИЁМУ' },
       voxel:     { eyebrow: 'КЕЙС / ВОКСЕЛЬ', title: 'ВОКСЕЛЬНЫЙ ДВИЖОК', subtitle: 'БРАУЗЕРНЫЙ ДВИЖОК РЕАЛЬНОГО ВРЕМЕНИ', body: 'Чанковый террейн, динамический occlusion culling, кастомная физика, 60 FPS WebGL рендеринг.', footer: 'ДЕТАЛЬ НА ПОЛУ / УГОЛ' },
       shader:    { eyebrow: 'КЕЙС / ШЕЙДЕР', title: 'РЭЙМАРЧЕР', subtitle: 'SDF РЕНДЕР PLAYGROUND', body: 'Морфинг металлических полей, мягкие тени и ambient occlusion на кастомном GLSL.', footer: 'ДЕТАЛЬ НА ПОЛУ / РЕБРО' },
@@ -120,19 +120,19 @@ const t = {
 
     navIntro: {
       compromised: 'СТАТУС СИСТЕМЫ: БАЗА ДАННЫХ СКОМПРОМЕТИРОВАНА / КУБ ФРАГМЕНТИРОВАН\n\nПеретащите три летающих фрагмента обратно в слоты на главном кубе, чтобы восстановить целостность базы данных и разблокировать навигацию.',
-      restored: 'Добро пожаловать в мою пространственную мастерскую. Я сочетаю WebGL, 3D-физику и SOLID-архитектуру для создания иммерсивного цифрового искусства и высокопроизводительных интерактивных интерфейсов.\n\nИспользуйте мышь для исследования комнаты. Нажимайте на центральные плитки граней кубика Рубика или играйте с разбросанными деталями на полу для навигации по портфолио.',
+      restored: 'Добро пожаловать в мою пространственную мастерскую. Я строю AI-first продукты — RAG-системы, мультиагентных ассистентов и голосовые интерфейсы — и запускаю их быстро, используя AI как основной инструмент.\n\nИспользуйте мышь для исследования комнаты. Нажимайте на центральные плитки граней кубика Рубика или играйте с разбросанными деталями на полу для навигации по портфолио.',
     },
 
     hud: {
       restored: 'HAKON — Фуллстек / AI First инженер',
       compromised: 'База данных скомпрометирована — коснитесь деталей для восстановления',
-      about: 'О СЕБЕ — Проектирование тактильных взаимодействий',
-      skills: 'СТЕК — WebGL, React, Astro',
-      experience: 'ПРОЕКТЫ — Воксель, Шейдер, Аудио',
-      lockedHint: 'СНАЧАЛА ВОССТАНОВИТЕ НЕДОСТАЮЩИЕ ФРАГМЕНТЫ',
+      about: 'О СЕБЕ — От идеи к продукту',
+      skills: 'СТЕК — Python, Next.js, ADK',
+      experience: 'ЛАБ — Воксель, Шейдер, Аудио',
     },
 
     langLabel: 'EN',
+    cvLabel: 'Резюме ↓',
   },
 };
 

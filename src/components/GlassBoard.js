@@ -73,9 +73,6 @@ export class GlassBoard {
     this.redrawCanvas();
   }
 
-  showLockedHint() {
-    window.dispatchEvent(new CustomEvent('portfolio:locked-hint'));
-  }
 
   updateContent(sectionId) {
     if (!this.portfolioData[sectionId]) return;
