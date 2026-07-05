@@ -47,11 +47,11 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
       <h2 class="section-title-main">PROJECTS</h2>
       <div class="section-title-sub">LIVE / OPEN SOURCE</div>
       <ul class="section-title-list project-list">
-        <li><span>[01]</span> <a href="https://andartit.gamerzero.dev" target="_blank" rel="noopener">AndartIT ↗</a></li>
-        <li><span>[02]</span> <a href="https://provogatto.com" target="_blank" rel="noopener">Provogatto ↗</a></li>
-        <li><span>[03]</span> <a href="https://github.com/Laurentzius/smartkeden" target="_blank" rel="noopener">Smartkeden ↗</a></li>
-        <li><span>[04]</span> <a href="https://github.com/Laurentzius/flow-skills" target="_blank" rel="noopener">Flow-skills ↗</a></li>
-        <li><span>[05]</span> Vetvoice</li>
+        <li><span>[01]</span><span class="project-item"><a href="https://andartit.gamerzero.dev" target="_blank" rel="noopener">AndartIT ↗</a><em class="project-desc">Fullstack gaming community platform</em></span></li>
+        <li><span>[02]</span><span class="project-item"><a href="https://provogatto.com" target="_blank" rel="noopener">Provogatto ↗</a><em class="project-desc">Italian restaurant site with reservations</em></span></li>
+        <li><span>[03]</span><span class="project-item"><a href="https://github.com/Laurentzius/smartkeden" target="_blank" rel="noopener">Smartkeden ↗</a><em class="project-desc">AI customs: HS code classification, duty calc, docs</em></span></li>
+        <li><span>[04]</span><span class="project-item"><a href="https://github.com/Laurentzius/flow-skills" target="_blank" rel="noopener">Flow-skills ↗</a><em class="project-desc">Reusable work-skills framework for AI agents</em></span></li>
+        <li><span>[05]</span><span class="project-item"><span>Vetvoice</span><em class="project-desc">RAG/voice agent with ASR/TTS and telephony</em></span></li>
       </ul>
     </div>
     
@@ -138,15 +138,8 @@ import PortfolioHUD from '../components/PortfolioHUD.jsx';
         if (desc && s.desc) desc.textContent = s.desc;
 
         if (s.list) {
-          const listItems = container.querySelectorAll('.section-title-list li');
-          listItems.forEach((li, i) => {
-            if (s.list[i]) {
-              // Keep the [01] span prefix, update text
-              const prefix = li.querySelector('span');
-              li.textContent = '';
-              if (prefix) li.appendChild(prefix);
-              li.appendChild(document.createTextNode(' ' + s.list[i]));
-            }
+          container.querySelectorAll('.project-desc').forEach((el, i) => {
+            if (s.list[i]) el.textContent = s.list[i];
           });
         }
       });

@@ -408,6 +408,20 @@ canvas:active {
 .project-list a:hover {
   color: #fff;
 }
+.project-list li {
+  align-items: flex-start;
+}
+.project-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.project-desc {
+  font-style: normal;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+}
 
 @media (max-width: 768px) {
   .section-title-container {
