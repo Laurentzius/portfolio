@@ -54,13 +54,13 @@ const t = {
     subtitle: 'SYSTEM // ONLINE',
 
     // nav labels
-    nav: { HOME: 'HOME', ABOUT: 'ABOUT', SKILLS: 'SKILLS', WORK: 'WORK', CONTACT: 'CONTACT' },
+    nav: { welcome: 'HOME', about: 'ABOUT', skills: 'STACK', experience: 'PROJECTS', contact: 'CONTACT' },
 
     // section titles (index.astro overlays)
     sections: {
       welcome:  { eyebrow: null, main: 'XAKON.DEV', sub: 'FULLSTACK / AI FIRST ENGINEER', desc: null },
       about:    { eyebrow: '01 / ABOUT', main: 'AI-FIRST BUILDS', sub: 'IDEA → PRODUCT, FAST', desc: 'Fullstack AI-first engineer. I ship RAG pipelines, multi-agent assistants, and voice interfaces — with AI as the primary tool, not a feature.' },
-      skills:   { eyebrow: '02 / STACK', main: 'AI STACK', sub: 'PYTHON / NEXT.JS / ADK', desc: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini & Claude. Multi-agent systems, RAG, voice (ASR/TTS), Langfuse, Docker.' },
+      skills:   { eyebrow: '02 / STACK', main: 'STACK', sub: 'POLYGLOT / FULLSTACK', desc: 'Python, TypeScript, Go, Elixir. React, Next.js, Svelte, Vue, Astro, Tailwind. FastAPI, Node.js, gRPC, WebSockets. PostgreSQL, Redis, Qdrant, ClickHouse. Google ADK 2.0, Gemini, Claude, Langfuse. Docker, Kubernetes, Sentry.' },
       experience:{ eyebrow: '03 / LAB', main: 'INTERACTIVE LAB', sub: 'VOXEL / SHADER / AUDIO', list: ['Voxel terrain engine', 'GLSL raymarch playground', 'Spatial synth interface'] },
       contact:  { eyebrow: '04 / CONTACT', main: 'SIGNAL MODE', sub: 'TRANSMISSION CHANNELS' },
       voxel:    { eyebrow: 'CASE / VOXEL', main: 'VOXEL ENGINE', sub: 'REAL-TIME BROWSER ENGINE', desc: 'Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.' },
@@ -72,7 +72,7 @@ const t = {
     portfolio: {
       welcome:   { eyebrow: '00 / PORTFOLIO', title: 'HAKON', subtitle: 'FULLSTACK / AI FIRST ENGINEER', body: '', footer: 'CLICK A FACE OR PICK A SECTION' },
       about:     { eyebrow: '01 / ABOUT', title: 'AI-FIRST BUILDS', subtitle: 'IDEA → PRODUCT, FAST', body: 'Fullstack AI-first engineer. I ship RAG pipelines, multi-agent assistants, and voice interfaces — with AI as the primary tool, not a feature.', footer: 'CUBE FACE: TOP' },
-      skills:    { eyebrow: '02 / STACK', title: 'AI STACK', subtitle: 'PYTHON / NEXT.JS / ADK', body: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini & Claude. Multi-agent systems, RAG, voice (ASR/TTS), Langfuse, Docker.', footer: 'CUBE FACE: RIGHT' },
+      skills:    { eyebrow: '02 / STACK', title: 'STACK', subtitle: 'POLYGLOT / FULLSTACK', body: 'Python, TypeScript, Go, Elixir. React, Next.js, Svelte, Vue, Astro, Tailwind. FastAPI, Node.js, gRPC, WebSockets. PostgreSQL, Redis, Qdrant, ClickHouse. Google ADK 2.0, Gemini, Claude, Langfuse. Docker, Kubernetes, Sentry.', footer: 'CUBE FACE: RIGHT' },
       experience:{ eyebrow: '03 / LAB', title: 'INTERACTIVE LAB', subtitle: 'VOXEL / SHADER / AUDIO', body: '[01] Voxel terrain engine\n[02] GLSL raymarch playground\n[03] Spatial synth interface', footer: 'LIVE EXPERIMENTS / DRAG TO ORBIT' },
       contact:   { eyebrow: '04 / CONTACT', title: 'SIGNAL MODE', subtitle: 'TRANSMISSION CHANNELS', body: '', footer: 'READY TO RECEIVE' },
       voxel:     { eyebrow: 'CASE / VOXEL', title: 'VOXEL ENGINE', subtitle: 'REAL-TIME BROWSER ENGINE', body: 'Chunk terrain, dynamic occlusion culling, custom physics, 60 FPS WebGL rendering.', footer: 'FLOOR PIECE / CORNER' },
@@ -91,7 +91,7 @@ const t = {
       restored: 'HAKON — Fullstack / AI First Engineer',
       compromised: 'Database Compromised — Tap pieces to restore',
       about: 'ABOUT — Idea to product, fast',
-      skills: 'STACK — Python, Next.js, ADK',
+      skills: 'STACK — Python, TS, Go, React, ADK',
       experience: 'LAB — Voxel, Shader, Audio',
     },
 
@@ -106,12 +106,12 @@ const t = {
     branding: 'XAKON.DEV // ЯДРО',
     subtitle: 'СИСТЕМА // ОНЛАЙН',
 
-    nav: { HOME: 'ГЛАВНАЯ', ABOUT: 'О СЕБЕ', SKILLS: 'СТЕК', WORK: 'ПРОЕКТЫ', CONTACT: 'КОНТАКТ' },
+    nav: { welcome: 'ГЛАВНАЯ', about: 'О СЕБЕ', skills: 'СТЕК', experience: 'ПРОЕКТЫ', contact: 'КОНТАКТ' },
 
     sections: {
       welcome:  { eyebrow: null, main: 'XAKON.DEV', sub: 'ФУЛЛСТЕК / AI FIRST ИНЖЕНЕР', desc: null },
       about:    { eyebrow: '01 / О СЕБЕ', main: 'AI-FIRST СБОРКА', sub: 'ИДЕЯ → ПРОДУКТ, БЫСТРО', desc: 'Фуллстек AI-first инженер. Запускаю RAG-пайплайны, мультиагентных ассистентов и голосовые интерфейсы — AI как основной инструмент, а не фича.' },
-      skills:   { eyebrow: '02 / СТЕК', main: 'AI СТЕК', sub: 'PYTHON / NEXT.JS / ADK', desc: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini и Claude. Мультиагентные системы, RAG, голос (ASR/TTS), Langfuse, Docker.' },
+      skills:   { eyebrow: '02 / СТЕК', main: 'СТЕК', sub: 'ПОЛИГЛОТ / ФУЛЛСТЕК', desc: 'Python, TypeScript, Go, Elixir. React, Next.js, Svelte, Vue, Astro, Tailwind. FastAPI, Node.js, gRPC, WebSockets. PostgreSQL, Redis, Qdrant, ClickHouse. Google ADK 2.0, Gemini, Claude, Langfuse. Docker, Kubernetes, Sentry.' },
       experience:{ eyebrow: '03 / ЛАБ', main: 'ИНТЕРАКТИВНАЯ ЛАБ', sub: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', list: ['Воксельный движок террейна', 'GLSL playground рэймарчера', 'Пространственный синт-интерфейс'] },
       contact:  { eyebrow: '04 / КОНТАКТ', main: 'РЕЖИМ СИГНАЛА', sub: 'КАНАЛЫ ПЕРЕДАЧИ' },
       voxel:    { eyebrow: 'КЕЙС / ВОКСЕЛЬ', main: 'ВОКСЕЛЬНЫЙ ДВИЖОК', sub: 'БРАУЗЕРНЫЙ ДВИЖОК РЕАЛЬНОГО ВРЕМЕНИ', desc: 'Чанковый террейн, динамический occlusion culling, кастомная физика, 60 FPS WebGL рендеринг.' },
@@ -122,7 +122,7 @@ const t = {
     portfolio: {
       welcome:   { eyebrow: '00 / ПОРТФОЛИО', title: 'HAKON', subtitle: 'ФУЛЛСТЕК / AI FIRST ИНЖЕНЕР', body: '', footer: 'НАЖМИТЕ НА ГРАНЬ ИЛИ ВЫБЕРИТЕ РАЗДЕЛ' },
       about:     { eyebrow: '01 / О СЕБЕ', title: 'AI-FIRST СБОРКА', subtitle: 'ИДЕЯ → ПРОДУКТ, БЫСТРО', body: 'Фуллстек AI-first инженер. Запускаю RAG-пайплайны, мультиагентных ассистентов и голосовые интерфейсы — AI как основной инструмент, а не фича.', footer: 'ГРАНЬ КУБА: ВЕРХ' },
-      skills:    { eyebrow: '02 / СТЕК', title: 'AI СТЕК', subtitle: 'PYTHON / NEXT.JS / ADK', body: 'Python (FastAPI), Next.js, Qdrant, Google ADK 2.0, Gemini и Claude. Мультиагентные системы, RAG, голос (ASR/TTS), Langfuse, Docker.', footer: 'ГРАНЬ КУБА: ПРАВО' },
+      skills:    { eyebrow: '02 / СТЕК', title: 'СТЕК', subtitle: 'ПОЛИГЛОТ / ФУЛЛСТЕК', body: 'Python, TypeScript, Go, Elixir. React, Next.js, Svelte, Vue, Astro, Tailwind. FastAPI, Node.js, gRPC, WebSockets. PostgreSQL, Redis, Qdrant, ClickHouse. Google ADK 2.0, Gemini, Claude, Langfuse. Docker, Kubernetes, Sentry.', footer: 'ГРАНЬ КУБА: ПРАВО' },
       experience:{ eyebrow: '03 / ЛАБ', title: 'ИНТЕРАКТИВНАЯ ЛАБ', subtitle: 'ВОКСЕЛЬ / ШЕЙДЕР / АУДИО', body: '[01] Воксельный движок террейна\n[02] GLSL playground рэймарчера\n[03] Пространственный синт-интерфейс', footer: 'ЖИВЫЕ ЭКСПЕРИМЕНТЫ / КРУТИТЕ КУБ' },
       contact:   { eyebrow: '04 / КОНТАКТ', title: 'РЕЖИМ СИГНАЛА', subtitle: 'КАНАЛЫ ПЕРЕДАЧИ', body: '', footer: 'ГОТОВ К ПРИЁМУ' },
       voxel:     { eyebrow: 'КЕЙС / ВОКСЕЛЬ', title: 'ВОКСЕЛЬНЫЙ ДВИЖОК', subtitle: 'БРАУЗЕРНЫЙ ДВИЖОК РЕАЛЬНОГО ВРЕМЕНИ', body: 'Чанковый террейн, динамический occlusion culling, кастомная физика, 60 FPS WebGL рендеринг.', footer: 'ДЕТАЛЬ НА ПОЛУ / УГОЛ' },
@@ -139,7 +139,7 @@ const t = {
       restored: 'HAKON — Фуллстек / AI First инженер',
       compromised: 'База данных скомпрометирована — коснитесь деталей для восстановления',
       about: 'О СЕБЕ — От идеи к продукту',
-      skills: 'СТЕК — Python, Next.js, ADK',
+      skills: 'СТЕК — Python, TS, Go, React, ADK',
       experience: 'ЛАБ — Воксель, Шейдер, Аудио',
     },
 
