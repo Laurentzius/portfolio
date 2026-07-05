@@ -2,7 +2,7 @@ import { checkIsMobileLayout } from '../utils/device.js';
 import React from 'react';
 import { gsap } from 'gsap';
 import TargetCursor from './TargetCursor.jsx';
-import { getLocale, toggleLocale, onLocaleChange, t_ } from '../utils/i18n.js';
+import { getLocale, toggleLocale, onLocaleChange, initStoredLocale, t_ } from '../utils/i18n.js';
 
 const NAV_IDS = ['welcome', 'about', 'skills', 'experience', 'contact'];
 
@@ -14,7 +14,7 @@ export default function PortfolioHUD() {
   const containerRef = React.useRef(null);
 
   // Subscribe to locale changes
-  React.useEffect(() => onLocaleChange(setLocaleState), []);
+  React.useEffect(() => { initStoredLocale(); return onLocaleChange(setLocaleState); }, []);
 
   React.useEffect(() => {
     const handleRestored = () => {

@@ -3,7 +3,9 @@ const STORAGE_KEY = 'locale';
 
 const listeners = new Set();
 const isBrowser = typeof window !== 'undefined';
-let current = isBrowser ? (localStorage.getItem(STORAGE_KEY) || 'en') : 'en';
+// ponytail: start at 'en' so SSR HTML and first client render match (no React hydration
+// mismatch); the stored locale is applied post-mount via initStoredLocale().
+let current = 'en';
 if (isBrowser) document.documentElement.lang = current;
 
 
@@ -23,6 +25,16 @@ export function setLocale(locale) {
 }
 export function toggleLocale() {
   setLocale(current === 'en' ? 'ru' : 'en');
+}
+
+/**
+ * Apply the locale persisted in localStorage. Call after mount so the first client
+ * render matches the server render and React does not regenerate the tree.
+ */
+export function initStoredLocale() {
+  if (!isBrowser) return;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored && stored !== current) setLocale(stored);
 }
 
 export function onLocaleChange(fn) {
